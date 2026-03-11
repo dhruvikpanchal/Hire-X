@@ -1,0 +1,209 @@
+/* ===================================
+   REGISTER PAGE - SAFE SCOPED CSS
+=================================== */
+
+.register-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100%;
+    background: var(--bg-body);
+}
+
+/* CONTAINER */
+
+.register-page .register-form-container {
+    width: 50%;
+    background: var(--bg-card);
+    border: var(--border-subtle);
+    border-radius: var(--radius-first);
+    padding: 30px;
+    box-shadow: var(--shadow-register-container);
+}
+
+/* LOGO */
+
+.register-page .register-logo {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.register-page .logo-img {
+    width: 38px;
+}
+
+.register-page .logo-name {
+    font-size: var(--font-size-xl);
+    font-weight: var(--fw-black);
+    background: var(--bg-gradient-register-logo);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+}
+
+/* HEADER */
+
+.register-page .register-header h1 {
+    text-align: center;
+    font-size: var(--font-size-2xl-plus);
+    font-weight: var(--fw-black);
+    color: var(--text-main);
+    margin-bottom: 25px;
+}
+
+/* FORM */
+
+.register-page .register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ROW LAYOUT */
+
+.register-page .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+/* FORM GROUP */
+
+.register-page .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.register-page .form-group label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--fw-bold);
+    color: var(--text-main);
+}
+
+/* INPUTS */
+
+.register-page .input-wrapper {
+    position: relative;
+}
+
+.register-page .input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.register-page .input-wrapper input {
+    width: 100%;
+    padding: 10px 12px 10px 38px;
+    background: var(--color-register-input-bg);
+    border: var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    transition: var(--duration-fast);
+}
+
+.register-page .input-wrapper input:focus {
+    border-color: var(--primary);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-register-input-focus);
+}
+
+/* PASSWORD TOGGLE */
+
+.register-page .toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+/* ROLE SELECTOR */
+
+.register-page .role-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.register-page .role-option {
+    padding: 10px;
+    border-radius: var(--radius-md);
+    border: var(--border-subtle);
+    background: var(--color-register-input-bg);
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    font-weight: var(--fw-bold);
+    cursor: pointer;
+    transition: var(--duration-fast);
+}
+
+.register-page .role-option:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.register-page .role-option.active {
+    background: var(--nav-link-active-bg);
+    color: var(--text-white);
+    border: none;
+    box-shadow: var(--shadow-role-option-active);
+}
+
+/* CHECKBOX */
+
+.register-page .checkbox-label {
+    display: flex;
+    gap: 10px;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+.register-page .checkbox-custom {
+    width: 18px;
+    height: 18px;
+    border: var(--border-subtle-2);
+    border-radius: var(--radius-xs-plus);
+}
+
+/* BUTTON */
+
+.register-page .btn-submit {
+    padding: 12px;
+    border-radius: var(--radius-md);
+    border: none;
+    font-size: var(--font-size-sm-plus);
+    font-weight: var(--fw-extrabold);
+    color: var(--text-white);
+    background: var(--nav-link-active-bg);
+    cursor: pointer;
+    transition: var(--duration-normal);
+}
+
+.register-page .btn-submit:hover {
+    box-shadow: var(--shadow-register-btn-hover);
+}
+
+/* FOOTER */
+
+.register-page .form-footer {
+    text-align: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: var(--border-muted);
+}
+
+.register-page .form-footer a {
+    color: var(--primary);
+    font-weight: var(--fw-bold);
+}

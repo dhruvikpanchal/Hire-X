@@ -1,0 +1,352 @@
+/* Theme - Global Visual Variables */
+
+:root {
+
+    /* Primary Colors */
+    --primary: #4f46e5;
+    --primary-dark: #4338ca;
+    --primary-light: #818cf8;
+    --primary-soft: #6366f1;
+
+    /* Secondary & Accent */
+    --secondary: #ec4899;
+    --accent: #06b6d4;
+
+    /* Status Colors */
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+
+    /* Background Colors */
+    --bg-body: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-white: #ffffff;
+    --bg-muted: #f1f5f9;
+    --bg-glass: rgba(255, 255, 255, 0.8);
+    --bg-footer: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    --bg-footer-decoration: radial-gradient(circle, rgba(79, 70, 229, 0.08) 0%, transparent 70%);
+    --bg-footer-social-link: rgba(255, 255, 255, 0.05);
+    --bg-footer-social-link-before: linear-gradient(135deg, var(--primary), var(--primary-soft));
+    --bg-footer-heading-after: var(--primary);
+    --bg-footer-bottom: rgba(0, 0, 0, 0.2);
+    --bg-10: rgba(245, 158, 11, 0.1);
+
+
+    /* Text Colors */
+    --text-white: #ffffff;
+    --text-main: #111827;
+    --text-muted: #6b7280;
+    --text-indigo-800: #3730a3;
+    --text-light: #94a3b8;
+    --text-footer: #cbd5e1;
+    --text-footer-second: rgba(255, 255, 255, 0.2);
+
+    /* Border Colors */
+    --border-subtle: 1px dashed #e5e7eb;
+    --border-subtle-solid: 1px solid #e5e7eb;
+    --border-subtle-color: #e5e7eb;
+    --border-subtle-2: 2px solid #e5e7eb;
+    --border-strong: 1.5px solid #e2e8f0;
+    --border-muted: 1px solid #f1f5f9;
+    --border-footer-social-link-color-size: 1px solid rgba(255, 255, 255, 0.1);
+    --border-footer-bottom-top-color-size: 1px solid rgba(255, 255, 255, 0.08);
+
+    /* Alpha Colors (New) */
+    --color-primary-05-size: 1px solid rgba(79, 70, 229, 0.05);
+    --color-primary-08-size: 1px solid rgba(79, 70, 229, 0.08);
+    --color-primary-10: rgba(79, 70, 229, 0.1);
+    --color-primary-15: rgba(79, 70, 229, 0.15);
+    --color-primary-20: rgba(79, 70, 229, 0.2);
+    --color-primary-30-size: 1.5px solid rgba(79, 70, 229, 0.3);
+    --color-primary-40: rgba(79, 70, 229, 0.4);
+    --color-primary-50: rgba(16, 185, 129, 0.1);
+
+    --color-white-20: rgba(255, 255, 255, 0.2);
+    --color-white-30: rgba(255, 255, 255, 0.3);
+    --color-white-80: rgba(255, 255, 255, 0.8);
+    --color-white-80: 2px solid #ffffff;
+
+    --color-black-02: rgba(0, 0, 0, 0.02);
+    --color-black-03-size: 1px solid rgba(0, 0, 0, 0.03);
+    --color-black-05: rgba(0, 0, 0, 0.05);
+    --color-black-08: rgba(0, 0, 0, 0.08);
+    --color-black-10: rgba(0, 0, 0, 0.1);
+    --color-black-15: rgba(0, 0, 0, 0.15);
+    --color-black-20: rgba(0, 0, 0, 0.2);
+
+    --color-white-60-size: 1px solid rgba(255, 255, 255, 0.6);
+    --color-white-90: rgba(255, 255, 255, 0.9);
+
+    --color-primary-02: rgba(79, 70, 229, 0.02);
+    --color-primary-03: rgba(79, 70, 229, 0.03);
+    --color-primary-05: rgba(79, 70, 229, 0.05);
+    --color-primary-07: rgba(79, 70, 229, 0.07);
+    --color-primary-12: rgba(79, 70, 229, 0.12);
+    --color-primary-18: rgba(79, 70, 229, 0.18);
+    --color-primary-25: rgba(79, 70, 229, 0.25);
+    --color-primary-35: rgba(79, 70, 229, 0.35);
+
+    --color-secondary-03: rgba(236, 72, 153, 0.03);
+    --color-secondary-15: rgba(236, 72, 153, 0.15);
+    --color-primary-soft-15: rgba(99, 102, 241, 0.15);
+
+    --color-gray-700: #374151;
+    --color-gray-50: #f9fafb;
+    --color-slate-50: #f8fafc;
+
+    --color-slate-800: #1e293b;
+
+    /* Typography */
+
+    /* Fonts */
+    --font-family-base: 'Outfit', system-ui, -apple-system, sans-serif;
+
+    /* Font Sizes */
+    --font-size-xs: 0.75rem;
+    --font-size-08: 0.8rem;
+    --font-size-sm-low: 0.85rem;
+    --font-size-sm: 0.875rem;
+    --font-size-sm-plus: 0.95rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl-low: 1.15rem;
+    --font-size-xl: 1.25rem;
+    --font-size-1-3: 1.3rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-2xl-plus: 1.75rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+    --font-size-display: 2.5rem;
+    --font-size-display-low: 2rem;
+    --font-size-5xl: 3rem;
+    --font-size-6xl: 4rem;
+
+    /* Font Weights */
+    --fw-light: 300;
+    --fw-normal: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+    --fw-extrabold: 800;
+    --fw-black: 900;
+
+    /* Line Height */
+    --lh-tight: 1.2rem;
+    --lh-normal-low: 1.4rem;
+    --lh-normal: 1.5rem;
+    --lh-relaxed: 1.6rem;
+    --lh-loose: 1.7rem;
+    --lh-loose-1: 1.8rem;
+    --ln-2-8: 2.8rem;
+
+    /* letter spacing */
+    --ln-0-02-plus: 0.2rem;
+    --ln-0-02: -0.02rem;
+    --ln-0-03: -0.03rem;
+    --ln-0-05: -0.05rem;
+    --lh-0-01-em: 0.01em;
+    --lh-0-02-em: -0.02em;
+    --lh-0-03-em: -0.03em;
+
+    /* Navbar Font Sizes */
+    --nav-logo-font-size: 1.6rem;
+    --nav-logo-font-size-md: 1.4rem;
+    --nav-logo-font-size-sm: 1.3rem;
+
+    /* BORDERS & RADIUS */
+
+    /* Radius */
+    --radius-2: 2px;
+    --radius-xs: 4px;
+    --radius-xs-plus: 5px;
+    --radius-sm: 6px;
+    --radius-8: 8px;
+    --radius-md: 10px;
+    --radius-12: 12px;
+    --radius-first: 14px;
+    --radius-lg: 16px;
+    --radius-18: 18px;
+    --radius-xl: 20px;
+    --radius-24: 24px;
+    --radius-28: 28px;
+    --radius-32: 32px;
+    --radius-40: 40px;
+    --radius-100: 100px;
+    --radius-half: 50%;
+    --radius-full: 9999px;
+
+
+    /* Navbar Radius */
+    --nav-link-radius: 100px;
+    --radius-12: 12px;
+
+    /* Shadows & Effects */
+
+    /* Box Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.15);
+    --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.2);
+    --shadow-social-link-hover: 0 8px 20px rgba(79, 70, 229, 0.4);
+    --shadow-box-hover: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    --shadow-box-hover-2: 0 20px 40px -5px rgba(0, 0, 0, 0.08);
+
+
+    /* Navbar Shadows */
+    --shadow-navbar: 0 4px 30px rgba(0, 0, 0, 0.05);
+    --shadow-navbar-scrolled: 0 8px 40px rgba(0, 0, 0, 0.08);
+    --shadow-nav-center: 0 4px 20px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    --shadow-nav-center-scrolled: 0 6px 25px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+    /* New Shadows (Extracted) */
+    --shadow-primary-sm: 0 2px 10px rgba(79, 70, 229, 0.05);
+    --shadow-primary-md: 0 6px 20px rgba(79, 70, 229, 0.15);
+    --shadow-primary-lg: 0 4px 15px rgba(79, 70, 229, 0.3);
+
+    --shadow-black-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
+    --shadow-black-md: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+    /* Hero Shadows */
+    --shadow-hero-search: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+    --shadow-hero-search-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+    --drop-shadow-hero-img: 0 20px 40px rgba(0, 0, 0, 0.1);
+    --shadow-float-card: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+    --shadow-float-card-hover: 0 15px 35px -5px rgba(0, 0, 0, 0.15);
+
+    /* Card Shadows */
+    --shadow-stats-grid: 0 20px 50px rgba(0, 0, 0, 0.05);
+    --shadow-card-hover: 0 15px 30px rgba(0, 0, 0, 0.05);
+    --shadow-step-card-hover: 0 20px 40px rgba(79, 70, 229, 0.18);
+    --shadow-step-number: 0 8px 20px rgba(79, 70, 229, 0.35);
+    --shadow-category-hover: 0 25px 60px rgba(79, 70, 229, 0.15);
+    --shadow-icon-container: 0 12px 30px rgba(79, 70, 229, 0.25);
+
+    /* Company Card Shadows */
+    --shadow-company-card: 0 10px 30px rgba(0, 0, 0, 0.02);
+    --shadow-company-card-hover: 0 35px 70px rgba(79, 70, 229, 0.12);
+    --shadow-company-logo-wrapper: 0 10px 20px rgba(0, 0, 0, 0.02);
+    --shadow-btn-ghost-primary: 0 10px 25px rgba(79, 70, 229, 0.25);
+
+    /* Testimonial Shadows */
+    --shadow-testimonial-card: 0 10px 40px rgba(0, 0, 0, 0.03);
+    --shadow-testimonial-card-hover: 0 30px 60px rgba(79, 70, 229, 0.08);
+    --shadow-avatar-wrapper: 0 8px 20px rgba(0, 0, 0, 0.1);
+
+    /* CTA Shadows */
+    --shadow-cta-card-hover: 0 30px 60px rgba(79, 70, 229, 0.2);
+    --shadow-cta-employer-hover: 0 30px 60px rgba(15, 23, 42, 0.3);
+    --shadow-btn-white: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --shadow-btn-white-hover: 0 10px 25px rgba(0, 0, 0, 0.2);
+    --shadow-dark-lg: 0 30px 60px rgba(15, 23, 42, 0.3);
+
+    /* Drop Shadows */
+    --drop-shadow-logo: 0 4px 8px rgba(79, 70, 229, 0.2);
+    --drop-shadow-logo-hover: 0 6px 12px rgba(79, 70, 229, 0.3);
+
+    /* Blur */
+    --blur-sm: 10px;
+    --blur-md: 15px;
+    --blur-lg: 20px;
+    --blur-xl: 25px;
+    --blur-30: 30px;
+    --blur-decoration: 80px;
+
+    /* Opacity */
+    --opacity-0: 0;
+    --opacity-05: 0.05;
+    --opacity-10: 0.1;
+    --opacity-20: 0.2;
+    --opacity-30: 0.3;
+    --opacity-40: 0.4;
+    --opacity-50: 0.5;
+    --opacity-60: 0.6;
+    --opacity-70: 0.7;
+    --opacity-80: 0.8;
+    --opacity-85: 0.85;
+    --opacity-90: 0.9;
+    --opacity-100: 1;
+
+    /* Durations */
+    --duration-fast: 0.15s;
+    --duration-normal: 0.3s;
+    --duration-slow: 0.5s;
+    --duration-nav: 0.4s;
+
+    /* Transitions */
+    --transition-fast: var(--duration-fast) ease;
+    --transition: var(--duration-normal) ease;
+    --transition-slow: var(--duration-slow) ease;
+    --nav-transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-card: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+    --transition-btn: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* animation */
+    --animation: float 18s ease-in-out infinite;
+    --animation-2: fadeIn 0.5s ease;
+
+    /* Eases */
+    --ease-nav: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-logo: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    /* Component visuals (Navbar) */
+
+    /* Navbar Backgrounds */
+    --nav-bg-glass: rgba(255, 255, 255, 0.7);
+    --nav-bg-scrolled: rgba(255, 255, 255, 0.85);
+    --nav-bg-glass-strong: rgba(255, 255, 255, 0.85);
+    --nav-bg-glass-medium: rgba(255, 255, 255, 0.6);
+    --nav-bg-glass-light: rgba(255, 255, 255, 0.5);
+    --nav-bg-hover: rgba(79, 70, 229, 0.08);
+    --nav-link-active-bg: linear-gradient(135deg, var(--primary), var(--primary-soft));
+
+    /* Navbar Borders */
+    --nav-border-bottom-color: rgba(255, 255, 255, 0.3);
+    --nav-border-scrolled-color: rgba(79, 70, 229, 0.1);
+    --nav-center-bg: rgba(255, 255, 255, 0.6);
+    --nav-center-border-color-size: 1.5px solid rgba(79, 70, 229, 0.3);
+
+    /* Gradients */
+    --bg-gradient-hero-1: radial-gradient(circle at 90% 10%, rgba(79, 70, 229, 0.03) 0%, transparent 40%);
+    --bg-gradient-hero-2: radial-gradient(circle at 10% 90%, rgba(236, 72, 153, 0.03) 0%, transparent 40%);
+    --bg-gradient-hero-highlight: linear-gradient(135deg, var(--primary), var(--secondary));
+    --bg-gradient-visual-circle-1: radial-gradient(circle at 30% 30%, rgba(236, 72, 153, 0.15), transparent 60%);
+    --bg-gradient-visual-circle-2: radial-gradient(circle at 70% 70%, rgba(99, 102, 241, 0.15), transparent 60%);
+    --bg-gradient-stat-value: linear-gradient(135deg, var(--primary), #6366f1);
+    --bg-gradient-testimonials-1: radial-gradient(circle at 10% 10%, rgba(79, 70, 229, 0.02) 0%, transparent 40%);
+    --bg-gradient-testimonials-2: radial-gradient(circle at 90% 90%, rgba(99, 102, 241, 0.02) 0%, transparent 40%);
+    --bg-gradient-cta-candidate: linear-gradient(135deg, #4f46e5, #4338ca);
+    --bg-gradient-cta-employer: linear-gradient(135deg, #1e293b, #0f172a);
+    --bg-gradient-login-page: linear-gradient(180deg, var(--bg-card), var(--bg-body));
+    --bg-gradient-login-logo: linear-gradient(135deg, #1e293b 0%, var(--primary) 100%);
+    --bg-gradient-register-logo: linear-gradient(135deg, #1E293B, #2563EB);
+    --bg-gradient-login-right: linear-gradient(135deg, #4f46e5, #6366f1);
+    --bg-gradient-visual-pattern-1: repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255, 255, 255, 0.1) 40px, rgba(255, 255, 255, 0.1) 41px);
+    --bg-gradient-visual-pattern-2: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255, 255, 255, 0.1) 40px, rgba(255, 255, 255, 0.1) 41px);
+    --bg-gradient-visual-pattern-circle-1: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
+    --bg-gradient-visual-pattern-circle-2: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+
+    /* Auth Page Shadows */
+    --shadow-login-input-focus: 0 0 0 3px rgba(79, 70, 229, 0.08);
+    --shadow-register-input-focus: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    --shadow-login-btn-submit: 0 6px 20px rgba(79, 70, 229, 0.25);
+    --shadow-login-btn-submit-hover: 0 8px 25px rgba(79, 70, 229, 0.35);
+    --shadow-register-container: 0 12px 35px rgba(0, 0, 0, 0.04);
+    --shadow-role-option-active: 0 6px 18px rgba(37, 99, 235, 0.3);
+    --shadow-register-btn-hover: 0 10px 25px rgba(37, 99, 235, 0.35);
+    --shadow-visual-text: 0 3px 15px rgba(0, 0, 0, 0.1);
+    --shadow-stat-card-hover: 0 8px 25px rgba(0, 0, 0, 0.12);
+    --shadow-box: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+
+
+    /* Auth Page Colors */
+    --color-login-input-bg: rgba(248, 250, 252, 0.8);
+    --color-register-input-bg: #F9FAFB;
+    --color-visual-stat-bg: rgba(255, 255, 255, 0.15);
+    --color-visual-stat-hover-bg: rgba(255, 255, 255, 0.2);
+    --color-visual-stat-border: 1px solid rgba(255, 255, 255, 0.2);
+    --color-visual-text-p: rgba(255, 255, 255, 0.9);
+    --color-visual-stat-p: rgba(255, 255, 255, 0.8);
+    --color-white-10: rgba(255, 255, 255, 0.1);
+    --color-white-12: rgba(255, 255, 255, 0.12);
+}

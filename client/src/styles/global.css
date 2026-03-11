@@ -1,0 +1,345 @@
+@import './theme.css';
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* Layout & spacing */
+
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 40px;
+    --space-2xl: 64px;
+
+    --container-xl: 1280px;
+
+    --z-navbar: 1000;
+    --z-dropdown: 200;
+    --z-modal: 300;
+    --z-toast: 400;
+
+    --lp-3: -0.05em;
+    --lp-2: -0.02em;
+    --lp-1: -0.01em;
+
+    --bp-sm: 640px;
+    --bp-md: 768px;
+    --bp-lg: 1024px;
+    --bp-xl: 1280px;
+
+    /* Spacing */
+    --space-0-5: 0.5rem;
+    --space-0-6: 0.6rem;
+    --space-0-75: 0.75rem;
+    --space-1: 1rem;
+    --space-1-5: 1.5rem;
+    --space-1-75: 1.75rem;
+    --space-2: 2rem;
+    --space-2-5: 2.5rem;
+    --space-3: 3rem;
+    --space-4: 4rem;
+    --space-6: 6rem;
+
+    /* Navbar Specific Layout */
+    --nav-height: 80px;
+    --nav-padding-y: 1rem;
+    --nav-padding-y-scrolled: 0.7rem;
+
+    --nav-logo-gap: 0.9rem;
+    --nav-logo-height: 45px;
+    --nav-logo-height-md: 40px;
+    --nav-logo-height-sm: 36px;
+
+    --nav-link-padding-y: 0.6rem;
+    --nav-link-padding-x: 1.2rem;
+
+    /* Button Specific Layout */
+    --btn-padding-y: 0.75rem;
+    --btn-padding-x: 1.5rem;
+
+    /* Section Specific Layout */
+    --section-padding: 100px 0;
+    --section-subtitle-max-width: 600px;
+
+    /* Footer Specific Layout */
+    --footer-decoration-size: 600px;
+    --footer-icon-size: 50px;
+    --footer-social-size: 44px;
+    --footer-grid-col-1: 2fr;
+    --footer-grid-col-rest: 1fr;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    font-family: var(--font-family-base);
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+    display: block;
+    max-width: 100%;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+a:hover {
+    color: var(--primary);
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+}
+
+input,
+textarea,
+select {
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--text-main);
+}
+
+ul {
+    list-style: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: var(--space-sm);
+}
+
+h1 {
+    font-size: var(--font-size-4xl);
+}
+
+h2 {
+    font-size: var(--font-size-3xl);
+}
+
+h3 {
+    font-size: var(--font-size-2xl);
+}
+
+h4 {
+    font-size: var(--font-size-xl);
+}
+
+h5 {
+    font-size: var(--font-size-lg);
+}
+
+h6 {
+    font-size: var(--font-size-base);
+}
+
+p {
+    font-size: var(--font-size-base);
+    margin-bottom: var(--space-sm);
+}
+
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
+}
+
+.section {
+    padding: var(--section-padding);
+}
+
+.bg-light {
+    background-color: var(--bg-body);
+}
+
+.bg-white {
+    background-color: var(--bg-card);
+}
+
+.section-title {
+    font-size: var(--section-title-size);
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 1rem;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+}
+
+.section-subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: var(--section-subtitle-size);
+    max-width: var(--section-subtitle-max-width);
+    margin: 0 auto 4rem;
+    line-height: 1.6;
+}
+
+.flex {
+    display: flex;
+}
+
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--btn-padding-y) var(--btn-padding-x);
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    transition: var(--transition);
+    gap: 0.5rem;
+    border: none;
+    background: transparent;
+    color: var(--text-main);
+}
+
+.btn-primary {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--primary), var(--primary-soft));
+    color: #ffffff;
+    border-radius: var(--radius-full);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-primary::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(79, 70, 229, 0.4);
+}
+
+.btn-primary:hover::before {
+    opacity: 1;
+}
+
+.btn-secondary {
+    background: #ffffff;
+    color: var(--primary);
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-subtle);
+}
+
+.btn-secondary:hover {
+    background: var(--primary);
+    color: #ffffff;
+}
+
+.btn-outline {
+    border-radius: var(--radius-full);
+    border: 1px solid var(--text-light);
+    color: var(--text-main);
+}
+
+.btn-outline:hover {
+    border-color: var(--text-main);
+    background: var(--text-main);
+    color: #ffffff;
+}
+
+.card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(15, 23, 42, 0.05);
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.glass {
+    background: var(--bg-glass);
+    backdrop-filter: blur(var(--blur-md));
+    /* 12px is close to 15px (md) or 10px (sm). Let's use md or define --blur-glass: 12px */
+    -webkit-backdrop-filter: blur(var(--blur-md));
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+    .section {
+        padding: 60px 0;
+    }
+
+    .section-title {
+        font-size: 2.25rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .show-on-desktop {
+        display: block !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .hide-on-mobile {
+        display: none !important;
+    }
+}
