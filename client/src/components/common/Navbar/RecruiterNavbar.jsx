@@ -48,6 +48,17 @@ const RecruiterNavbar = () => {
                 <div className="nav-center hidden-mobile">
                     <ul className="nav-links">
                         <li>
+                            <Link to="/recruiter/home">
+                                <motion.div
+                                    className={`nav-link ${location.pathname === "/recruiter/home" ? "active" : ""}`}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    Home
+                                </motion.div>
+                            </Link>
+                        </li>
+                        <li>
                             <Link to="/recruiter/dashboard">
                                 <motion.div
                                     className={`nav-link ${location.pathname === "/recruiter/dashboard" ? "active" : ""}`}
@@ -58,59 +69,57 @@ const RecruiterNavbar = () => {
                                 </motion.div>
                             </Link>
                         </li>
-
                         <li>
-                            <Link to="#">
+                            <Link to="/recruiter/findCandidates">
                                 <motion.div
-                                    className={`nav-link ${location.pathname === "/recruiter/postJob" ? "active" : ""}`}
+                                    className={`nav-link ${location.pathname === "/recruiter/findCandidates" ? "active" : ""}`}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    Post Job
+                                    Find Candidates
+                                </motion.div>
+                            </Link>
+                        </li>
+                        <li>
+                            <Link to="/recruiter/Post">
+                                <motion.div
+                                    className={`nav-link ${location.pathname === "/recruiter/Post" ? "active" : ""}`}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    Post
                                 </motion.div>
                             </Link>
                         </li>
 
                         <li>
-                            <Link to="#">
+                            <Link to="/recruiter/my-jobs">
                                 <motion.div
-                                    className={`nav-link ${location.pathname === "/recruiter/manageJobs" ? "active" : ""}`}
+                                    className={`nav-link ${location.pathname === "/recruiter/my-jobs" ? "active" : ""}`}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    Manage Jobs
+                                    My Jobs
                                 </motion.div>
                             </Link>
                         </li>
 
                         <li>
-                            <Link to="#">
+                            <Link to="/recruiter/applications">
                                 <motion.div
-                                    className={`nav-link ${location.pathname === "/recruiter/applicants" ? "active" : ""}`}
+                                    className={`nav-link ${location.pathname === "/recruiter/applications" ? "active" : ""}`}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    Applicants
+                                    Applications
                                 </motion.div>
                             </Link>
                         </li>
 
                         <li>
-                            <Link to="#">
+                            <Link to="/recruiter/Messages">
                                 <motion.div
-                                    className={`nav-link ${location.pathname === "/recruiter/candidates" ? "active" : ""}`}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    Candidates
-                                </motion.div>
-                            </Link>
-                        </li>
-
-                        <li>
-                            <Link to="#">
-                                <motion.div
-                                    className={`nav-link ${location.pathname === "/recruiter/messages" ? "active" : ""}`}
+                                    className={`nav-link ${location.pathname === "/recruiter/Messages" ? "active" : ""}`}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
@@ -124,12 +133,11 @@ const RecruiterNavbar = () => {
                 </div>
 
                 {/* Actions */}
+
                 <div className="nav-actions hidden-mobile">
                     <div className="navbar-profile">
-                        <button
-                            className="navbar-profile-btn"
-                            onClick={() => setProfileOpen(!profileOpen)}
-                        >
+
+                        <button className="navbar-profile-btn">
                             <img
                                 src={Image.join_community}
                                 alt="recruiter"
@@ -139,21 +147,23 @@ const RecruiterNavbar = () => {
                             <ChevronDown size={16} />
                         </button>
 
-                        {profileOpen && (
-                            <div className="navbar-dropdown">
-                                <button onClick={() => navigate("#")}>
-                                    Profile
-                                </button>
+                        <div className="navbar-dropdown">
+                            <button onClick={() => navigate("/recruiter/profile")}>
+                                Profile
+                            </button>
+                            <button onClick={() => navigate("/recruiter/pricing")}>
+                                Plans
+                            </button>
 
-                                <button onClick={() => navigate("#")}>
-                                    Settings
-                                </button>
+                            <button onClick={() => navigate("#")}>
+                                Settings
+                            </button>
 
-                                <button className="navbar-logout-btn">
-                                    Logout
-                                </button>
-                            </div>
-                        )}
+                            <button className="navbar-logout-btn">
+                                Logout
+                            </button>
+                        </div>
+
                     </div>
                 </div>
 

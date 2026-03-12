@@ -1,389 +1,174 @@
-import React, { useState, useEffect, useRef } from "react";
-import "./Companies.css";
+import React, { useState } from 'react';
+import './Companies.css';
 
-const COMPANIES = [
+const MOCK_COMPANIES = [
   {
     id: 1,
     name: "Stripe",
-    industry: "Fintech",
+    industry: "FinTech",
     size: "4,000+",
-    openRoles: 38,
+    openJobs: 38,
     location: "San Francisco",
     logo: "S",
-    color: "#635BFF",
-    founded: "2010",
-    rating: 4.8,
+    description: "Financial infrastructure platform for the internet, helping businesses accept payments and manage revenue.",
   },
   {
     id: 2,
     name: "Vercel",
     industry: "Dev Tools",
     size: "500+",
-    openRoles: 21,
-    location: "Remote-first",
+    openJobs: 21,
+    location: "Remote",
     logo: "V",
-    color: "#000000",
-    founded: "2015",
-    rating: 4.9,
+    description: "The platform for frontend developers, providing the speed and reliability innovators need to create at the moment of inspiration.",
   },
   {
     id: 3,
     name: "Linear",
     industry: "SaaS",
     size: "100+",
-    openRoles: 12,
+    openJobs: 12,
     location: "San Francisco",
     logo: "L",
-    color: "#5E6AD2",
-    founded: "2019",
-    rating: 4.7,
+    description: "The issue tracking tool you'll enjoy using. Streamline software projects, sprints, tasks, and bug tracking.",
   },
   {
     id: 4,
     name: "Notion",
     industry: "Productivity",
     size: "600+",
-    openRoles: 29,
+    openJobs: 29,
     location: "New York",
     logo: "N",
-    color: "#000000",
-    founded: "2016",
-    rating: 4.6,
+    description: "The all-in-one workspace for your notes, tasks, wikis, and databases. A new tool that blends your everyday work apps into one.",
   },
   {
     id: 5,
     name: "Figma",
     industry: "Design Tools",
     size: "800+",
-    openRoles: 44,
+    openJobs: 44,
     location: "San Francisco",
     logo: "F",
-    color: "#F24E1E",
-    founded: "2012",
-    rating: 4.9,
+    description: "Connect everyone in the design process so teams can deliver better products, faster.",
   },
   {
     id: 6,
     name: "Loom",
     industry: "Video Comms",
     size: "300+",
-    openRoles: 17,
-    location: "Remote-first",
+    openJobs: 17,
+    location: "Remote",
     logo: "L",
-    color: "#625DF5",
-    founded: "2015",
-    rating: 4.5,
-  },
-  {
-    id: 7,
-    name: "Retool",
-    industry: "Dev Tools",
-    size: "400+",
-    openRoles: 23,
-    location: "San Francisco",
-    logo: "R",
-    color: "#3D5AFE",
-    founded: "2017",
-    rating: 4.7,
-  },
-  {
-    id: 8,
-    name: "Brex",
-    industry: "Fintech",
-    size: "1,200+",
-    openRoles: 51,
-    location: "Remote-first",
-    logo: "B",
-    color: "#FC5200",
-    founded: "2017",
-    rating: 4.6,
-  },
-  {
-    id: 9,
-    name: "Rippling",
-    industry: "HR Tech",
-    size: "2,000+",
-    openRoles: 67,
-    location: "San Francisco",
-    logo: "R",
-    color: "#FF4F00",
-    founded: "2016",
-    rating: 4.5,
-  },
-  {
-    id: 10,
-    name: "Airtable",
-    industry: "SaaS",
-    size: "900+",
-    openRoles: 32,
-    location: "New York",
-    logo: "A",
-    color: "#FCB400",
-    founded: "2012",
-    rating: 4.4,
-  },
-  {
-    id: 11,
-    name: "Miro",
-    industry: "Collaboration",
-    size: "1,500+",
-    openRoles: 40,
-    location: "Amsterdam",
-    logo: "M",
-    color: "#FFD02F",
-    founded: "2011",
-    rating: 4.6,
-  },
-  {
-    id: 12,
-    name: "Zapier",
-    industry: "Automation",
-    size: "600+",
-    openRoles: 19,
-    location: "Remote-first",
-    logo: "Z",
-    color: "#FF4A00",
-    founded: "2011",
-    rating: 4.7,
+    description: "Video messaging for work. Record your screen and camera and share it instantly with a link.",
   },
 ];
 
-const INDUSTRIES = [
-  "All",
-  "Fintech",
-  "Dev Tools",
-  "SaaS",
-  "Productivity",
-  "Design Tools",
-  "Video Comms",
-  "HR Tech",
-  "Collaboration",
-  "Automation",
-];
+const INDUSTRIES = ["All", "FinTech", "Dev Tools", "SaaS", "Productivity", "Design Tools", "Video Comms"];
 
-function useIntersectionObserver(ref, options = {}) {
-  const [isVisible, setIsVisible] = useState(false);
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1, ...options },
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ref]);
-  return isVisible;
-}
+const Companies = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedIndustry, setSelectedIndustry] = useState('All');
 
-function CompanyCard({ company, index }) {
-  const ref = useRef(null);
-  const visible = useIntersectionObserver(ref);
-  const [hovered, setHovered] = useState(false);
+  const filteredCompanies = MOCK_COMPANIES.filter(company => {
+    const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesIndustry = selectedIndustry === 'All' || company.industry === selectedIndustry;
+    return matchesSearch && matchesIndustry;
+  });
 
   return (
-    <div
-      ref={ref}
-      className={`company-card ${visible ? "company-card--visible" : ""} ${hovered ? "company-card--hovered" : ""}`}
-      style={{ "--delay": `${index * 60}ms`, "--accent": company.color }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <div className="company-card__accent-bar" />
-      <div className="company-card__header">
-        <div
-          className="company-card__logo"
-          style={{ background: `${company.color}18`, color: company.color }}
-        >
-          {company.logo}
-        </div>
-        <div className="company-card__title-group">
-          <h3 className="company-card__name">{company.name}</h3>
-          <span className="company-card__industry">{company.industry}</span>
-        </div>
-        <div className="company-card__rating">
-          <span className="company-card__rating-star">★</span>
-          <span>{company.rating}</span>
-        </div>
-      </div>
-
-      <div className="company-card__meta">
-        <div className="company-card__meta-item">
-          <span className="company-card__meta-icon">📍</span>
-          <span>{company.location}</span>
-        </div>
-        <div className="company-card__meta-item">
-          <span className="company-card__meta-icon">👥</span>
-          <span>{company.size} employees</span>
-        </div>
-        <div className="company-card__meta-item">
-          <span className="company-card__meta-icon">📅</span>
-          <span>Est. {company.founded}</span>
-        </div>
-      </div>
-
-      <div className="company-card__footer">
-        <div className="company-card__roles">
-          <span className="company-card__roles-count">{company.openRoles}</span>
-          <span className="company-card__roles-label">open roles</span>
-        </div>
-        <button className="company-card__cta">
-          View Jobs
-          <span className="company-card__cta-arrow">→</span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-export default function Companies() {
-  const [activeFilter, setActiveFilter] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("openRoles");
-  const heroRef = useRef(null);
-
-  const filtered = COMPANIES.filter(
-    (c) => activeFilter === "All" || c.industry === activeFilter,
-  )
-    .filter(
-      (c) =>
-        c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.industry.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
-    .sort((a, b) =>
-      sortBy === "openRoles"
-        ? b.openRoles - a.openRoles
-        : sortBy === "rating"
-          ? b.rating - a.rating
-          : a.name.localeCompare(b.name),
-    );
-
-  const totalJobs = COMPANIES.reduce((s, c) => s + c.openRoles, 0);
-
-  return (
-    <div className="companies-page">
-      {/* ── HERO ── */}
-      <section className="companies-hero" ref={heroRef}>
-        <div className="companies-hero__bg">
-          <div className="companies-hero__orb companies-hero__orb--1" />
-          <div className="companies-hero__orb companies-hero__orb--2" />
-          <div className="companies-hero__grid" />
-        </div>
-        <div className="companies-hero__content">
-          <div className="companies-hero__eyebrow">
-            <span className="companies-hero__eyebrow-dot" />
-            {COMPANIES.length} Featured Companies
-          </div>
-          <h1 className="companies-hero__title">
-            Where Great
-            <br />
-            <span className="companies-hero__title-accent">Careers Begin</span>
-          </h1>
-          <p className="companies-hero__sub">
-            Explore {COMPANIES.length} world-class companies actively hiring
-            across {INDUSTRIES.length - 1} industries — {totalJobs} open roles
-            and growing.
+    <div className="companies-container">
+      {/* 1. Hero Section */}
+      <section className="companies-hero">
+        <div className="companies-hero-content">
+          <h1 className="companies-title">Explore Top Companies</h1>
+          <p className="companies-description">
+            Discover leading companies building the future, explore their culture, and find your next career opportunity.
           </p>
-
-          <div className="companies-hero__search-wrap">
-            <span className="companies-hero__search-icon">⌕</span>
-            <input
-              className="companies-hero__search"
-              placeholder="Search companies or industries…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+          <div className="companies-search-wrapper">
+            <svg className="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input 
+              type="text" 
+              placeholder="Search companies by name..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="companies-search-input"
             />
-            {searchQuery && (
-              <button
-                className="companies-hero__search-clear"
-                onClick={() => setSearchQuery("")}
-              >
-                ✕
-              </button>
-            )}
           </div>
         </div>
+      </section>
 
-        <div className="companies-hero__stats">
-          {[
-            { n: COMPANIES.length, l: "Top Companies" },
-            { n: totalJobs + "+", l: "Open Roles" },
-            { n: "9", l: "Industries" },
-            { n: "4.7★", l: "Avg. Rating" },
-          ].map((s) => (
-            <div key={s.l} className="companies-hero__stat">
-              <strong>{s.n}</strong>
-              <span>{s.l}</span>
-            </div>
+      {/* 3. Filter Section */}
+      <section className="companies-filters-section">
+        <div className="industry-filters">
+          {INDUSTRIES.map(industry => (
+            <button 
+              key={industry}
+              onClick={() => setSelectedIndustry(industry)}
+              className={`filter-btn ${selectedIndustry === industry ? 'active' : ''}`}
+            >
+              {industry}
+            </button>
           ))}
         </div>
       </section>
 
-      {/* ── CONTROLS ── */}
-      <div className="companies-controls">
-        <div className="companies-filters">
-          {INDUSTRIES.map((ind) => (
-            <button
-              key={ind}
-              className={`companies-filter-btn ${activeFilter === ind ? "companies-filter-btn--active" : ""}`}
-              onClick={() => setActiveFilter(ind)}
-            >
-              {ind}
-            </button>
-          ))}
+      {/* 2. Companies Grid */}
+      <section className="companies-list-section">
+        <div className="companies-header-bar">
+          <p className="results-count">Showing <span>{filteredCompanies.length}</span> companies</p>
         </div>
-        <div className="companies-sort">
-          <label className="companies-sort__label">Sort by</label>
-          <select
-            className="companies-sort__select"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="openRoles">Most Jobs</option>
-            <option value="rating">Highest Rated</option>
-            <option value="name">Alphabetical</option>
-          </select>
-        </div>
-      </div>
 
-      {/* ── RESULTS ── */}
-      <div className="companies-results-bar">
-        <span className="companies-results-count">
-          Showing <strong>{filtered.length}</strong>{" "}
-          {filtered.length === 1 ? "company" : "companies"}
-          {activeFilter !== "All" && (
-            <span className="companies-results-filter"> in {activeFilter}</span>
-          )}
-        </span>
-      </div>
-
-      {/* ── GRID ── */}
-      <div className="companies-grid">
-        {filtered.length > 0 ? (
-          filtered.map((company, i) => (
-            <CompanyCard key={company.id} company={company} index={i} />
-          ))
+        {filteredCompanies.length === 0 ? (
+          <div className="no-results">
+            <p>No companies found matching your criteria.</p>
+            <button className="reset-btn" onClick={() => { setSearchTerm(''); setSelectedIndustry('All'); }}>Reset Filters</button>
+          </div>
         ) : (
-          <div className="companies-empty">
-            <span className="companies-empty__icon">🔍</span>
-            <h3>No companies found</h3>
-            <p>Try adjusting your search or filter.</p>
-            <button
-              className="companies-empty__reset"
-              onClick={() => {
-                setSearchQuery("");
-                setActiveFilter("All");
-              }}
-            >
-              Reset filters
-            </button>
+          <div className="companies-grid">
+            {filteredCompanies.map(company => (
+              <div className="company-card" key={company.id}>
+                <div className="company-card-header">
+                  <div className="company-logo-container">
+                    <span className="company-logo-text">{company.logo}</span>
+                  </div>
+                  <div className="company-title-info">
+                    <h3 className="company-name">{company.name}</h3>
+                    <span className="company-industry">{company.industry}</span>
+                  </div>
+                </div>
+                
+                <div className="company-card-body">
+                  <p className="company-short-desc">{company.description}</p>
+                  
+                  <div className="company-meta">
+                    <div className="meta-item">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                      {company.location}
+                    </div>
+                    <div className="meta-item highlight">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                      {company.openJobs} Open Jobs
+                    </div>
+                  </div>
+                </div>
+
+                <div className="company-card-footer">
+                  <button className="view-jobs-btn">
+                    View Jobs
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
-}
+};
+
+export default Companies;

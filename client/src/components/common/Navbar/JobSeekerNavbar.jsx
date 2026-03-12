@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Globe, ChevronDown, Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // import files
@@ -10,6 +10,7 @@ import "./Navbar.css";
 const JobSeekerNavbar = () => {
     const navigate = useNavigate();
     const location = useLocation();
+
     const [profileOpen, setProfileOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -18,6 +19,7 @@ const JobSeekerNavbar = () => {
         const handleScroll = () => {
             setScrolled(window.scrollY > 20);
         };
+
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
@@ -32,8 +34,9 @@ const JobSeekerNavbar = () => {
             <div className="navbar-glass-bg"></div>
 
             <div className="container navbar-container">
+
                 {/* Logo */}
-                <Link to="/jobSeeker/dashboard">
+                <Link to="/">
                     <motion.div
                         className="logo"
                         whileHover={{ scale: 1.02 }}
@@ -47,6 +50,19 @@ const JobSeekerNavbar = () => {
                 {/* Desktop Nav */}
                 <div className="nav-center hidden-mobile">
                     <ul className="nav-links">
+
+                        <li>
+                            <Link to="/">
+                                <motion.div
+                                    className={`nav-link ${location.pathname === "/" ? "active" : ""}`}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    Home
+                                </motion.div>
+                            </Link>
+                        </li>
+
                         <li>
                             <Link to="/jobSeeker/dashboard">
                                 <motion.div
@@ -60,31 +76,43 @@ const JobSeekerNavbar = () => {
                         </li>
 
                         <li>
-                            <Link to="#">
+                            <Link to="/jobSeeker/findJobs">
                                 <motion.div
                                     className={`nav-link ${location.pathname === "/jobSeeker/findJobs" ? "active" : ""}`}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    Find Jobs
+                                    Jobs
                                 </motion.div>
                             </Link>
                         </li>
 
                         <li>
-                            <Link to="#">
+                            <Link to="/companies">
+                                <motion.div
+                                    className={`nav-link ${location.pathname === "/companies" ? "active" : ""}`}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    Companies
+                                </motion.div>
+                            </Link>
+                        </li>
+
+                        <li>
+                            <Link to="/jobSeeker/myApplications">
                                 <motion.div
                                     className={`nav-link ${location.pathname === "/jobSeeker/myApplications" ? "active" : ""}`}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    My Applications
+                                    Applications
                                 </motion.div>
                             </Link>
                         </li>
 
                         <li>
-                            <Link to="#">
+                            <Link to="/jobSeeker/jobAlerts">
                                 <motion.div
                                     className={`nav-link ${location.pathname === "/jobSeeker/jobAlerts" ? "active" : ""}`}
                                     whileHover={{ scale: 1.05 }}
@@ -96,7 +124,7 @@ const JobSeekerNavbar = () => {
                         </li>
 
                         <li>
-                            <Link to="#">
+                            <Link to="/jobSeeker/messages">
                                 <motion.div
                                     className={`nav-link ${location.pathname === "/jobSeeker/messages" ? "active" : ""}`}
                                     whileHover={{ scale: 1.05 }}
@@ -107,53 +135,41 @@ const JobSeekerNavbar = () => {
                             </Link>
                         </li>
 
-                        <li>
-                            <Link to="#">
-                                <motion.div
-                                    className={`nav-link ${location.pathname === "/jobSeeker/savedJobs" ? "active" : ""}`}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    Saved Jobs
-                                </motion.div>
-                            </Link>
-                        </li>
                     </ul>
-
-
                 </div>
 
-                {/* Actions */}
+
                 <div className="nav-actions hidden-mobile">
                     <div className="navbar-profile">
-                        <button
-                            className="navbar-profile-btn"
-                            onClick={() => setProfileOpen(!profileOpen)}
-                        >
+
+                        <button className="navbar-profile-btn">
                             <img
                                 src={Image.join_community}
-                                alt="job Seeker"
+                                alt="Job Seeker"
                                 className="navbar-avatar"
                             />
                             <span>Job Seeker</span>
                             <ChevronDown size={16} />
                         </button>
 
-                        {profileOpen && (
-                            <div className="navbar-dropdown">
-                                <button onClick={() => navigate("#")}>
-                                    Profile
-                                </button>
+                        <div className="navbar-dropdown">
+                            <button onClick={() => navigate("/jobSeeker/profile")}>
+                                Profile
+                            </button>
 
-                                <button onClick={() => navigate("#")}>
-                                    Settings
-                                </button>
+                            <button onClick={() => navigate("/jobSeeker/savedJobs")}>
+                                Saved Jobs
+                            </button>
 
-                                <button className="navbar-logout-btn">
-                                    Logout
-                                </button>
-                            </div>
-                        )}
+                            <button onClick={() => navigate("/jobSeeker/settings")}>
+                                Settings
+                            </button>
+
+                            <button className="navbar-logout-btn">
+                                Logout
+                            </button>
+                        </div>
+
                     </div>
                 </div>
 
@@ -179,74 +195,66 @@ const JobSeekerNavbar = () => {
                         transition={{ duration: 0.3 }}
                     >
                         <div className="mobile-menu-content">
-                            <li>
-                                <Link
-                                    to="/jobSeeker/dashboard"
-                                    className={`mobile-nav-link ${location.pathname === "/jobSeeker/dashboard" ? "active" : ""}`}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Dashboard
-                                </Link>
-                            </li>
 
-                            <li>
-                                <Link
-                                    to="#"
-                                    className={`mobile-nav-link ${location.pathname === "/jobSeeker/findJobs" ? "active" : ""}`}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Find Jobs
-                                </Link>
-                            </li>
+                            <ul className="mobile-nav-links">
 
-                            <li>
-                                <Link
-                                    to="#"
-                                    className={`mobile-nav-link ${location.pathname === "/jobSeeker/myApplications" ? "active" : ""}`}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    My Applications
-                                </Link>
-                            </li>
+                                <li>
+                                    <Link to="/" onClick={() => setMobileMenuOpen(false)}>
+                                        Home
+                                    </Link>
+                                </li>
 
-                            <li>
-                                <Link
-                                    to="#"
-                                    className={`mobile-nav-link ${location.pathname === "/jobSeeker/jobAlerts" ? "active" : ""}`}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Job Alerts
-                                </Link>
-                            </li>
+                                <li>
+                                    <Link to="/jobSeeker/findJobs" onClick={() => setMobileMenuOpen(false)}>
+                                        Find Jobs
+                                    </Link>
+                                </li>
 
-                            <li>
-                                <Link
-                                    to="#"
-                                    className={`mobile-nav-link ${location.pathname === "/jobSeeker/savedJobs" ? "active" : ""}`}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Saved Jobs
-                                </Link>
-                            </li>
+                                <li>
+                                    <Link to="/companies" onClick={() => setMobileMenuOpen(false)}>
+                                        Companies
+                                    </Link>
+                                </li>
 
-                            <li>
-                                <Link
-                                    to="#"
-                                    className={`mobile-nav-link ${location.pathname === "/jobSeeker/messages" ? "active" : ""}`}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Messages
-                                </Link>
-                            </li>
+                                <li>
+                                    <Link to="/jobSeeker/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                                        My Dashboard
+                                    </Link>
+                                </li>
+
+                                <li>
+                                    <Link to="/jobSeeker/myApplications" onClick={() => setMobileMenuOpen(false)}>
+                                        My Applications
+                                    </Link>
+                                </li>
+
+                                <li>
+                                    <Link to="/jobSeeker/savedJobs" onClick={() => setMobileMenuOpen(false)}>
+                                        Saved Jobs
+                                    </Link>
+                                </li>
+
+                                <li>
+                                    <Link to="/jobSeeker/jobAlerts" onClick={() => setMobileMenuOpen(false)}>
+                                        Job Alerts
+                                    </Link>
+                                </li>
+
+                                <li>
+                                    <Link to="/jobSeeker/messages" onClick={() => setMobileMenuOpen(false)}>
+                                        Messages
+                                    </Link>
+                                </li>
+
+                            </ul>
 
                             <div className="mobile-divider"></div>
 
                             <div className="mobile-actions">
-
                                 <button
                                     className="mobile-profile-btn"
                                     onClick={() => {
-                                        navigate("#");
+                                        navigate("/jobSeeker/profile");
                                         setMobileMenuOpen(false);
                                     }}
                                 >
@@ -256,7 +264,7 @@ const JobSeekerNavbar = () => {
                                 <button
                                     className="mobile-profile-btn"
                                     onClick={() => {
-                                        navigate("#");
+                                        navigate("/jobSeeker/settings");
                                         setMobileMenuOpen(false);
                                     }}
                                 >
@@ -266,8 +274,8 @@ const JobSeekerNavbar = () => {
                                 <button className="mobile-logout-btn">
                                     Logout
                                 </button>
-
                             </div>
+
                         </div>
                     </motion.div>
                 )}

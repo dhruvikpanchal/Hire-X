@@ -69,34 +69,37 @@ const Navbar = () => {
               </Link>
             </li>
             <li>
-              <motion.a
-                href="#"
-                className="nav-link"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Companies
-              </motion.a>
+              <Link to="/companies">
+                <motion.div
+                  className={`nav-link ${location.pathname === "/companies" ? "active" : ""}`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Companies
+                </motion.div>
+              </Link>
             </li>
             <li>
-              <motion.a
-                href="#"
-                className="nav-link"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                About
-              </motion.a>
+              <Link to="/pricing">
+                <motion.div
+                  className={`nav-link ${location.pathname === "/pricing" ? "active" : ""}`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Pricing
+                </motion.div>
+              </Link>
             </li>
             <li>
-              <motion.a
-                href="#"
-                className="nav-link"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Contact
-              </motion.a>
+              <Link to="/about">
+                <motion.div
+                  className={`nav-link ${location.pathname === "/about" ? "active" : ""}`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  About Us
+                </motion.div>
+              </Link>
             </li>
           </ul>
 
@@ -116,13 +119,13 @@ const Navbar = () => {
         {/* Actions */}
         <div className="nav-actions hidden-mobile">
           <button
-            className="btn btn-ghost"
+            className="btn nav-btn-ghost"
             onClick={() => navigate("/register")}
           >
             Sign Up
           </button>
           <button
-            className="btn btn-primary"
+            className="btn nav-btn-primary"
             onClick={() => navigate("/login")}
           >
             Sign In
@@ -186,7 +189,7 @@ const Navbar = () => {
 
               <div className="mobile-actions">
                 <button
-                  className="btn btn-ghost w-full"
+                  className="btn nav-btn-ghost w-full"
                   onClick={() => {
                     navigate("/register");
                     setMobileMenuOpen(false);
@@ -194,7 +197,7 @@ const Navbar = () => {
                 >
                   Sign In
                 </button>
-                <button className="btn btn-primary w-full">Post a Job</button>
+                <button className="btn nav-btn-primary w-full">Post a Job</button>
               </div>
             </div>
           </motion.div>

@@ -112,12 +112,11 @@ const AdminNavbar = () => {
                 </div>
 
                 {/* Actions */}
+
                 <div className="nav-actions hidden-mobile">
                     <div className="navbar-profile">
-                        <button
-                            className="navbar-profile-btn"
-                            onClick={() => setProfileOpen(!profileOpen)}
-                        >
+
+                        <button className="navbar-profile-btn">
                             <img
                                 src={Image.join_community}
                                 alt="admin"
@@ -127,21 +126,20 @@ const AdminNavbar = () => {
                             <ChevronDown size={16} />
                         </button>
 
-                        {profileOpen && (
-                            <div className="navbar-dropdown">
-                                <button onClick={() => navigate("#")}>
-                                    Profile
-                                </button>
+                        <div className="navbar-dropdown">
+                            <button onClick={() => navigate("#")}>
+                                Profile
+                            </button>
 
-                                <button onClick={() => navigate("#")}>
-                                    Settings
-                                </button>
+                            <button onClick={() => navigate("#")}>
+                                Settings
+                            </button>
 
-                                <button className="navbar-logout-btn">
-                                    Logout
-                                </button>
-                            </div>
-                        )}
+                            <button className="navbar-logout-btn">
+                                Logout
+                            </button>
+                        </div>
+
                     </div>
                 </div>
 

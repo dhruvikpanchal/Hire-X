@@ -1,0 +1,623 @@
+/* ================================================
+   MyApplications.css
+   Job Portal – JobSeeker Dashboard
+   Theme: Blue & White, Modern Professional
+   ================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+/* ---- CSS Variables ---- */
+:root {
+  --app-blue-900: #0f2d5e;
+  --app-blue-700: #1a4fa0;
+  --app-blue-600: #1e5cbf;
+  --app-blue-500: #2563eb;
+  --app-blue-400: #3b82f6;
+  --app-blue-100: #dbeafe;
+  --app-blue-50: #eff6ff;
+
+  --app-orange-500: #f97316;
+  --app-orange-100: #ffedd5;
+  --app-orange-700: #c2410c;
+
+  --app-green-500: #16a34a;
+  --app-green-100: #dcfce7;
+  --app-green-700: #15803d;
+
+  --app-white: #ffffff;
+  --app-gray-50: #f8fafc;
+  --app-gray-100: #f1f5f9;
+  --app-gray-200: #e2e8f0;
+  --app-gray-400: #94a3b8;
+  --app-gray-500: #64748b;
+  --app-gray-700: #334155;
+  --app-gray-900: #0f172a;
+
+  --app-shadow-sm: 0 1px 3px rgba(15, 45, 94, 0.07), 0 1px 2px rgba(15, 45, 94, 0.04);
+  --app-shadow-md: 0 4px 16px rgba(15, 45, 94, 0.10), 0 2px 6px rgba(15, 45, 94, 0.06);
+  --app-shadow-lg: 0 12px 32px rgba(15, 45, 94, 0.14), 0 4px 12px rgba(15, 45, 94, 0.08);
+
+  --app-radius-sm: 8px;
+  --app-radius-md: 12px;
+  --app-radius-lg: 18px;
+
+  --app-font: 'DM Sans', system-ui, sans-serif;
+  --app-mono: 'DM Mono', monospace;
+}
+
+/* ---- Page Reset & Base ---- */
+.applications-page *,
+.applications-page *::before,
+.applications-page *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.applications-page {
+  margin-top: 80px;
+  font-family: var(--app-font);
+  background: var(--app-gray-50);
+  min-height: 100vh;
+  color: var(--app-gray-900);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ================================================
+   HEADER
+   ================================================ */
+
+.applications-header {
+  background: linear-gradient(135deg, var(--app-blue-900) 0%, var(--app-blue-700) 60%, var(--app-blue-500) 100%);
+  padding: 40px 24px 36px;
+  position: relative;
+  overflow: hidden;
+}
+
+.applications-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 80% at 90% 20%, rgba(255, 255, 255, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 10% 80%, rgba(255, 255, 255, 0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.applications-header-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.applications-title-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.applications-icon-wrap {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--app-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+  backdrop-filter: blur(4px);
+}
+
+.applications-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.applications-subtitle {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 3px;
+  font-weight: 400;
+}
+
+/* Stats row */
+.applications-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--app-radius-md);
+  padding: 14px 22px;
+  backdrop-filter: blur(8px);
+}
+
+.applications-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.stat-number {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #ffffff;
+  font-family: var(--app-mono);
+  line-height: 1;
+}
+
+.stat-number.stat-shortlisted {
+  color: #6ee7b7;
+}
+
+.stat-number.stat-viewed {
+  color: #fcd34d;
+}
+
+.applications-stat-label {
+  font-size: 0.72rem;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 500;
+}
+
+.applications-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* ================================================
+   CONTROLS (Search + Filters)
+   ================================================ */
+
+.applications-controls {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 28px 24px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Search */
+.applications-search-wrap {
+  position: relative;
+  flex: 1 1 280px;
+  max-width: 400px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--app-gray-400);
+  pointer-events: none;
+}
+
+.applications-search {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  border: 1.5px solid var(--app-gray-200);
+  border-radius: var(--app-radius-sm);
+  font-size: 0.875rem;
+  font-family: var(--app-font);
+  color: var(--app-gray-900);
+  background: var(--app-white);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.applications-search::placeholder {
+  color: var(--app-gray-400);
+}
+
+.applications-search:focus {
+  border-color: var(--app-blue-400);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.13);
+}
+
+/* Filters */
+.applications-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--app-gray-200);
+  border-radius: 100px;
+  background: var(--app-white);
+  font-size: 0.82rem;
+  font-family: var(--app-font);
+  font-weight: 500;
+  color: var(--app-gray-500);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.filter-btn:hover {
+  border-color: var(--app-blue-400);
+  color: var(--app-blue-600);
+  background: var(--app-blue-50);
+}
+
+.filter-btn-active {
+  background: var(--app-blue-600);
+  border-color: var(--app-blue-600);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.30);
+}
+
+.filter-btn-active:hover {
+  background: var(--app-blue-700);
+  border-color: var(--app-blue-700);
+  color: #ffffff;
+}
+
+.filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.08);
+  color: inherit;
+}
+
+.filter-btn-active .filter-count {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* ================================================
+   GRID
+   ================================================ */
+
+.applications-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 24px 60px;
+}
+
+.applications-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 16px;
+}
+
+/* ================================================
+   APPLICATION CARD
+   ================================================ */
+
+@keyframes apcard-fadein {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.application-card {
+  background: var(--app-white);
+  border: 1.5px solid var(--app-gray-200);
+  border-radius: var(--app-radius-lg);
+  padding: 22px 22px 18px;
+  box-shadow: var(--app-shadow-sm);
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.22s ease,
+    border-color 0.18s ease;
+  cursor: default;
+
+  /* Fade-in on load */
+  opacity: 0;
+  animation: apcard-fadein 0.45s ease forwards;
+}
+
+.application-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--app-shadow-lg);
+  border-color: var(--app-blue-200, #bfdbfe);
+}
+
+/* Card top row */
+.application-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+/* Logo avatar */
+.application-logo {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--app-radius-sm);
+  background: linear-gradient(135deg, var(--app-blue-600), var(--app-blue-400));
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: var(--app-mono);
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28);
+  user-select: none;
+}
+
+/* Job title & company */
+.application-main-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.application-job-title {
+  font-size: 0.985rem;
+  font-weight: 650;
+  color: var(--app-gray-900);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.application-company {
+  font-size: 0.82rem;
+  color: var(--app-gray-500);
+  margin-top: 3px;
+  font-weight: 400;
+}
+
+/* ---- Status Badge ---- */
+.application-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 100px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.application-status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.status-applied {
+  background: var(--app-blue-100);
+  color: var(--app-blue-700);
+}
+
+.status-viewed {
+  background: var(--app-orange-100);
+  color: var(--app-orange-700);
+}
+
+.status-shortlisted {
+  background: var(--app-green-100);
+  color: var(--app-green-700);
+}
+
+/* Divider */
+.application-card-divider {
+  height: 1px;
+  background: var(--app-gray-100);
+  margin: 16px 0 14px;
+}
+
+/* Card bottom row */
+.application-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Meta info (location, date) */
+.application-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.application-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: var(--app-gray-500);
+  font-weight: 400;
+}
+
+.application-meta-item svg {
+  flex-shrink: 0;
+  color: var(--app-gray-400);
+}
+
+/* View Details button */
+.application-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1.5px solid var(--app-blue-500);
+  border-radius: var(--app-radius-sm);
+  background: transparent;
+  color: var(--app-blue-600);
+  font-size: 0.8rem;
+  font-family: var(--app-font);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  white-space: nowrap;
+}
+
+.application-view-btn:hover {
+  background: var(--app-blue-600);
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.28);
+}
+
+.application-view-btn svg {
+  transition: transform 0.18s ease;
+}
+
+.application-view-btn:hover svg {
+  transform: translateX(3px);
+}
+
+/* ================================================
+   EMPTY STATE
+   ================================================ */
+
+.applications-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+  animation: apcard-fadein 0.4s ease forwards;
+}
+
+.empty-icon {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: var(--app-blue-50);
+  border: 2px solid var(--app-blue-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--app-blue-400);
+  margin-bottom: 20px;
+}
+
+.empty-title {
+  font-size: 1.15rem;
+  font-weight: 650;
+  color: var(--app-gray-700);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.empty-message {
+  font-size: 0.875rem;
+  color: var(--app-gray-400);
+  max-width: 320px;
+  line-height: 1.6;
+}
+
+/* ================================================
+   RESPONSIVE
+   ================================================ */
+
+@media (max-width: 768px) {
+  .applications-header {
+    padding: 28px 16px 24px;
+  }
+
+  .applications-title {
+    font-size: 1.4rem;
+  }
+
+  .applications-stats-row {
+    padding: 10px 16px;
+    gap: 14px;
+  }
+
+  .stat-number {
+    font-size: 1.2rem;
+  }
+
+  .applications-controls {
+    padding: 20px 16px 0;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .applications-search-wrap {
+    max-width: 100%;
+  }
+
+  .applications-container {
+    padding: 20px 16px 48px;
+  }
+
+  .applications-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .application-card {
+    padding: 18px 16px 14px;
+  }
+
+  .application-card-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .application-view-btn {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .applications-header-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .applications-stats-row {
+    width: 100%;
+    justify-content: space-around;
+  }
+
+  .applications-filters {
+    gap: 6px;
+  }
+
+  .filter-btn {
+    padding: 6px 11px;
+    font-size: 0.78rem;
+  }
+}
