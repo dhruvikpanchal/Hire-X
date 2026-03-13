@@ -1,0 +1,165 @@
+# Hire_X - User MVC Architecture & Data Analysis
+
+## 1. User Roles Identified
+Based on the frontend analysis, the platform supports the following primary user roles:
+- **Job Seeker**: Users looking for jobs. They manage personal details, skills, and resumes.
+- **Recruiter (Employer)**: Users hiring for their companies. They manage personal recruiter information as well as company details.
+
+---
+
+## 2. User Data Fields
+Extracting from registration and profile forms:
+
+### General User Authentication (from Register.jsx / Login.jsx)
+- `fullName` / `username`
+- `email`
+- `password`
+- `role` ('jobseeker' or 'employer')
+
+### Job Seeker Details (from EditProfile.jsx)
+- `avatarSrc` (Profile Photo)
+- `fullName`
+- `email`
+- `phone`
+- `location`
+- `jobTitle` (Profession)
+- `skills` (Array of keywords)
+- `bio` (Short professional summary)
+- `linkedin` (LinkedIn Profile URL)
+- `portfolio` (Portfolio/Website URL)
+- `resumeFile` (Resume/CV document)
+
+### Recruiter & Company Details (from RecruiterEditProfile.jsx)
+- `profileImage` (Recruiter Photo)
+- `recruiterName`
+- `jobTitle` (Recruiter Position)
+- `email`
+- `phoneNumber`
+- `location`
+- `companyLogo` (Company Logo Image)
+- `companyName`
+- `industry`
+- `companySize` (e.g., "1-10", "51-200")
+- `companyWebsite`
+- `companyDescription` (About Company)
+
+---
+
+## 3. Suggested MongoDB Schema
+
+To maintain clean and scalable architecture, a single `User` schema can hold common authentication data, with a discriminator or conditional references pointing to specific `JobSeekerProfile` and `RecruiterProfile` schemas.
+
+### Base User Schema (`User.js`)
+```javascript
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  role: { type: String, enum: ['jobseeker', 'employer', 'admin'], default: 'jobseeker' },
+  avatar: { type: String }, // General profile image
+  phone: { type: String },
+  location: { type: String },
+}, { timestamps: true });
+```
+
+### Job Seeker Profile Schema (`JobSeeker.js`)
+```javascript
+const jobSeekerSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  jobTitle: { type: String },
+  skills: [{ type: String }],
+  bio: { type: String },
+  socials: {
+    linkedin: { type: String },
+    portfolio: { type: String }
+  },
+  resumeUrl: { type: String },
+}, { timestamps: true });
+```
+
+### Recruiter Profile Schema (`Recruiter.js` & `Company.js`)
+Alternatively, Company can be its own model if multiple recruiters belong to one company.
+```javascript
+const recruiterSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  jobTitle: { type: String }, // e.g., "Senior Technical Recruiter"
+  company: {
+    name: { type: String },
+    logo: { type: String },
+    industry: { type: String },
+    size: { type: String },
+    website: { type: String },
+    description: { type: String }
+  }
+}, { timestamps: true });
+```
+
+---
+
+## 4. Suggested MVC Structure (Backend - Node.js)
+
+```text
+server/
+├── controllers/
+│   ├── authController.js         # Handles signup, login, password reset
+│   ├── userController.js         # General user operations (get, update basic info)
+│   ├── jobSeekerController.js    # Operations specific to job seekers (skills, resume upload)
+│   └── recruiterController.js    # Operations specific to recruiters and companies
+├── models/
+│   ├── User.js
+│   ├── JobSeeker.js
+│   └── Recruiter.js
+├── routes/
+│   ├── authRoutes.js
+│   ├── userRoutes.js
+│   ├── jobSeekerRoutes.js
+│   └── recruiterRoutes.js
+├── middlewares/
+│   ├── authMiddleware.js         # Verify JWT tokens
+│   ├── roleMiddleware.js         # Restrict access by role (e.g., jobseeker, employer)
+│   └── uploadMiddleware.js       # Multer config for avatars & resumes
+```
+
+---
+
+## 5. Required API Routes
+
+### Authentication Routes (`/api/auth`)
+- `POST /register` : Register a new user (Job Seeker or Recruiter)
+- `POST /login` : Authenticate user and return JWT
+- `POST /forgot-password` : Send password reset link
+- `POST /reset-password` : Update password
+- `POST /verify-email` : Verify user's email
+
+### User & Profile Routes (`/api/users`)
+- `GET /profile` : Get current user details + specific profile (Job seeker or Recruiter)
+- `PUT /profile` : Update common user data (Name, Phone, Location, Avatar)
+- `DELETE /profile` : Delete user account
+
+### Job Seeker Routes (`/api/jobseekers`)
+- `GET /` : Get all public job seeker profiles (for recruiters)
+- `GET /:id` : Get specific job seeker profile
+- `PUT /profile` : Update Job Seeker detailed info (bio, skills, socials, jobTitle)
+- `POST /resume` : Upload/update resume document
+
+### Recruiter Routes (`/api/recruiters`)
+- `GET /` : Get list of companies/recruiters
+- `GET /:id` : Get specific recruiter/company
+- `PUT /profile` : Update Recruiter info + Company info (industry, size, description)
+- `POST /company-logo` : Upload company logo
+
+---
+
+## 6. Controller Responsibilities
+- **`authController`**: Handles the initial registration payload, hashing the password (bcrypt), and determining whether to scaffold an empty JobSeekerProfile or RecruiterProfile based on the `role` provided. Generates JWTs.
+- **`userController`**: Manages universal settings. Handles avatar uploads via Cloudinary.
+- **`jobSeekerController`**: Updates the dynamic arrays like `skills`, and handles file uploads for `resumeFile` ensuring correct MIME types (PDF, DOCX).
+- **`recruiterController`**: Facilitates updates to the employer's details and nested company details.
+
+---
+
+## 7. Notes Based on Frontend Usage
+1. **Forms**: State relies heavily on `react-hook-form` across steps, meaning validation logic in the backend must match the frontend constraints (e.g., minimum 6 characters for passwords).
+2. **File Uploads**: The user interface clearly distinguishes between 'Profile Photo', 'Company Logo', and 'Resume'. A unified file upload service like Cloudinary should handle these endpoints. Multer should be configured accordingly on the backend.
+3. **Roles Switch**: On the Registration page, users toggle a visual tab between `Job Seeker` and `Employer`. The backend should strictly enforce role permissions moving forward so recruiters cannot upload resumes or act as candidates.
+4. **Skills Management**: Skills on the frontend are generated dynamically via comma-separated inputs or Enter key presses. The backend should expect an array of strings inside the payload and prevent validation issues with empty strings.

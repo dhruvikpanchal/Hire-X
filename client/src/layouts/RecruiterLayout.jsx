@@ -1,14 +1,17 @@
 import { Outlet } from "react-router-dom";
-import RecruiterNavbar from "../components/common/Navbar/RecruiterNavbar";
-import Footer from "../components/common/Footer/Footer";
+import RecruiterNavbar from "../features/recruiter/RecruiterNavbar/RecruiterNavbar";
+import Footer from "../components/common/Footer";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 function RecruiterLayout() {
   return (
-    <div className="RecruiterLayout">
-      <RecruiterNavbar />
-      <Outlet />
-      <Footer />
-    </div>
+    <ProtectedRoute>
+      <div className="RecruiterLayout">
+        <RecruiterNavbar />
+        <Outlet />
+        <Footer />
+      </div>
+    </ProtectedRoute>
   );
 }
 

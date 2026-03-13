@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./RecruiterProfile.css";
+import { useNavigate } from "react-router-dom";
 
 /* ─── Profile Data ─── */
 const PROFILE = {
@@ -78,6 +79,7 @@ function InfoRow({ icon: Icon, label, value, link }) {
 
 /* ─── Main Component ─── */
 export default function RecruiterProfile() {
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const p = PROFILE;
 
@@ -146,7 +148,8 @@ export default function RecruiterProfile() {
             <button className="recruiterprofile-btn rp-btn-outline">
               <ShareIcon /> Share Profile
             </button>
-            <button className="recruiterprofile-btn rp-btn-primary">
+            <button className="recruiterprofile-btn rp-btn-primary"
+              onClick={() => navigate("/recruiter/editProfile")}>
               <EditIcon /> Edit Profile
             </button>
           </div>

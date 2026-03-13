@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 
 // import files
-import { Image } from "../../../utils/image_paths.js";
-import "./Footer.css";
+import { Image } from "../../utils/image_paths.js";
+import "../../styles/Global-Footer.css";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();

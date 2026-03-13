@@ -1,3 +1,5 @@
+import authService from "../../../services/authService.js";
+import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Globe, ChevronDown, Menu, X } from "lucide-react";
@@ -5,11 +7,19 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // import files
 import { Image } from "../../../utils/image_paths.js";
-import "./Navbar.css";
+import "../../../styles/Global-Navbar.css";
 
 const RecruiterNavbar = () => {
     const navigate = useNavigate();
     const location = useLocation();
+
+    const handleLogout = async () => {
+        await authService.logout();
+        toast.success("Logged out successfully");
+        navigate("/login");
+        window.location.reload();
+    }
+
     const [profileOpen, setProfileOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -159,7 +169,9 @@ const RecruiterNavbar = () => {
                                 Settings
                             </button>
 
-                            <button className="navbar-logout-btn">
+                            <button
+                                onClick={handleLogout}
+                                className="navbar-logout-btn">
                                 Logout
                             </button>
                         </div>
@@ -273,7 +285,9 @@ const RecruiterNavbar = () => {
                                     Settings
                                 </button>
 
-                                <button className="mobile-logout-btn">
+                                <button
+                                    onClick={handleLogout}
+                                    className="mobile-logout-btn">
                                     Logout
                                 </button>
 

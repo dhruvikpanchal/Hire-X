@@ -4,8 +4,8 @@ import { Globe, ChevronDown, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // import files
-import { Image } from "../../../utils/image_paths.js";
-import "./Navbar.css";
+import { Image } from "../../utils/image_paths.js";
+import "../../styles/Global-Navbar.css";
 
 const Navbar = () => {
   const navigate = useNavigate();

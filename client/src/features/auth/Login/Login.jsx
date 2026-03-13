@@ -1,3 +1,7 @@
+import authService from "../../../services/authService.js";
+import { useMutation } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -27,6 +31,32 @@ const Login = () => {
     formState: { errors },
   } = useForm({
     mode: "onSubmit",
+  });
+  const navigate = useNavigate();
+
+  const loginMutation = useMutation({
+    mutationFn: async (data) => {
+      return await authService.login(data);
+    },
+
+    onSuccess: (data) => {
+      console.log("Login successful:", data);
+
+      toast.success("Login successful!");
+
+      // redirect based on role
+      if (data.user.role === "jobseeker") {
+        navigate("/jobseeker/dashboard");
+      } else {
+        navigate("/recruiter/dashboard");
+      }
+    },
+
+    onError: (error) => {
+      const errMessage =
+        error.response?.data?.message || "Login failed!";
+      toast.error(errMessage);
+    },
   });
 
   const showErrors = (errors) => {
@@ -60,7 +90,10 @@ const Login = () => {
   };
 
   const onSubmit = (data) => {
-    console.log("Sign in:", data);
+    loginMutation.mutate({
+      email: data.email,
+      password: data.password,
+    });
   };
 
   const stats = [
@@ -156,8 +189,12 @@ const Login = () => {
               </div>
 
               {/* Submit */}
-              <motion.button type="submit" className="btn-submit">
-                Sign In
+              <motion.button
+                type="submit"
+                className="btn-submit"
+                disabled={loginMutation.isPending}
+              >
+                {loginMutation.isPending ? "Signing In..." : "Sign In"}
               </motion.button>
 
               {/* Footer */}

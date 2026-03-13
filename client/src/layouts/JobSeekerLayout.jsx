@@ -1,14 +1,17 @@
 import { Outlet } from "react-router-dom";
-import JobSeekerNavbar from "../components/common/Navbar/JobSeekerNavbar";
-import Footer from "../components/common/Footer/Footer";
+import JobSeekerNavbar from "../features/jobSeeker/JobSeekerNavbar/JobSeekerNavbar";
+import Footer from "../components/common/Footer";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 function JobSeekerLayout() {
   return (
-    <div className="JobSeekerLayout">
-      <JobSeekerNavbar />
-      <Outlet />
-      <Footer />
-    </div>
+    <ProtectedRoute>
+      <div className="JobSeekerLayout">
+        <JobSeekerNavbar />
+        <Outlet />
+        <Footer />
+      </div>
+    </ProtectedRoute>
   );
 }
 

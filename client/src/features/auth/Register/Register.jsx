@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Eye,
@@ -14,7 +14,9 @@ import {
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import axios from "axios";
+
+// authService central import
+import authService from "../../../services/authService.js";
 
 // import files
 import "./Register.css";
@@ -35,30 +37,36 @@ const Register = () => {
     mode: "onSubmit",
   });
 
+  const navigate = useNavigate();
+
   // React Query Mutation
   const registerMutation = useMutation({
     mutationFn: async (data) => {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        data,
-      );
-      return response.data;
+      // Calls service natively - abstracts axios and sets token securely
+      return await authService.register(data);
     },
     onSuccess: (data) => {
       console.log("Registration successful:", data);
+      toast.success("Registration successful! Redirecting to login...");
+      navigate("/login"); // Push to login window
     },
     onError: (error) => {
-      console.error(
-        "Registration failed:",
-        error.response?.data || error.message,
-      );
+      // Parse detailed error object returned by fastify/express natively
+      const errMessage = error.response?.data?.message || "Registration failed!";
+      console.error("Registration validation failed:", errMessage);
+      toast.error(errMessage);
     },
   });
 
   // Submit Handler
   const onSubmit = (data) => {
+    console.log("FORM DATA:", data);
+
     registerMutation.mutate({
-      ...data,
+      fullName: data.fullName,
+      username: data.username,
+      email: data.email,
+      password: data.password,
       role: selectedRole,
     });
   };
