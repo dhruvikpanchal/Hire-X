@@ -245,7 +245,7 @@
 }
 
 .findcandidates-filters-wrap {
-  max-width: 80%;
+  max-width: min(1120px, 92vw);
   margin: 0 auto;
   padding: 28px 28px 0;
   animation: fc-filters-in 0.45s var(--fc-ease) 0.1s both;
@@ -255,21 +255,29 @@
   background: var(--fc-white);
   border: 1.5px solid var(--fc-gray-200);
   border-radius: var(--fc-radius-lg);
-  padding: 20px 22px;
+  padding: 22px 24px;
   box-shadow: var(--fc-shadow-md);
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 14px;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 18px;
 }
 
-.findcandidates-filter-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  flex: 1;
+.findcandidates-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.findcandidates-span-2 {
+  grid-column: span 2;
+}
+
+.findcandidates-filter-grid .findcandidates-search-wrap,
+.findcandidates-filter-grid .findcandidates-input-wrap {
+  flex: unset;
   min-width: 0;
+  width: 100%;
 }
 
 /* Shared input styles */
@@ -428,8 +436,12 @@
 .findcandidates-filter-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  padding-top: 4px;
+  border-top: 1px solid var(--fc-gray-100);
 }
 
 .findcandidates-clear-btn {
@@ -498,7 +510,7 @@
    ================================================ */
 
 .findcandidates-body {
-  max-width: 80%;
+  max-width: min(1120px, 92vw);
   margin: 24px auto 0;
   padding: 0 28px;
 }
@@ -508,7 +520,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 18px;
+}
+
+.findcandidates-updating {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--fc-blue-500);
 }
 
 .findcandidates-results-count {
@@ -539,8 +559,118 @@
 
 .findcandidates-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
   gap: 18px;
+}
+
+/* Error banner */
+.findcandidates-error {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  background: #fef2f2;
+  border: 1.5px solid #fecaca;
+  border-radius: var(--fc-radius-md);
+  color: var(--fc-gray-700);
+}
+
+.findcandidates-error-icon {
+  display: flex;
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+.findcandidates-error-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.findcandidates-error strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.findcandidates-error p {
+  font-size: 0.85rem;
+  color: var(--fc-gray-500);
+  margin: 0;
+}
+
+.findcandidates-error-retry {
+  margin-left: auto;
+}
+
+/* Loading skeletons */
+.findcandidates-card--skeleton {
+  pointer-events: none;
+  animation: fc-card-in 0.35s var(--fc-ease) forwards;
+}
+
+.findcandidates-skel {
+  background: linear-gradient(90deg, var(--fc-gray-100) 25%, var(--fc-gray-150) 50%, var(--fc-gray-100) 75%);
+  background-size: 200% 100%;
+  animation: fc-shimmer 1.2s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes fc-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.findcandidates-skel-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.findcandidates-skel-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.findcandidates-skel-line {
+  height: 10px;
+}
+
+.findcandidates-skel-line--lg {
+  width: 55%;
+}
+
+.findcandidates-skel-line--md {
+  width: 40%;
+}
+
+.findcandidates-skel-line--sm {
+  width: 70%;
+}
+
+.findcandidates-skel-line--full {
+  width: 100%;
+  height: 9px;
+}
+
+.findcandidates-skel-chip {
+  width: 64px;
+  height: 26px;
+  border-radius: 100px;
+}
+
+.findcandidates-skills--skeleton {
+  margin-top: 4px;
 }
 
 /* ================================================
@@ -583,54 +713,12 @@
   border-color: var(--fc-blue-200);
 }
 
-/* Available badge */
-.findcandidates-available-badge {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  background: var(--fc-green-100);
-  border: 1.5px solid #86efac;
-  border-radius: 100px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--fc-green-600);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.findcandidates-available-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--fc-green-500);
-  animation: fc-pulse 2s ease-in-out infinite;
-}
-
-@keyframes fc-pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.5;
-    transform: scale(0.7);
-  }
-}
-
 /* Card header */
 .findcandidates-card-header {
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  padding-right: 80px;
-  /* space for badge */
+  padding-right: 0;
 }
 
 /* Avatar */
@@ -652,6 +740,10 @@
 
 .findcandidates-card:hover .findcandidates-avatar {
   transform: scale(1.06);
+}
+
+.findcandidates-avatar--img {
+  object-fit: cover;
 }
 
 /* Candidate info */
@@ -704,18 +796,6 @@
   font-size: 0.76rem;
 }
 
-.findcandidates-category-tag {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--fc-blue-600);
-  background: var(--fc-blue-50);
-  border: 1.5px solid var(--fc-blue-100);
-  padding: 2px 8px;
-  border-radius: 100px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
 /* Bio */
 .findcandidates-bio {
   font-size: 0.83rem;
@@ -755,6 +835,45 @@
   color: var(--fc-blue-700);
 }
 
+.findcandidates-skill-chip--more {
+  background: var(--fc-blue-50);
+  border-color: var(--fc-blue-200);
+  color: var(--fc-blue-600);
+}
+
+.findcandidates-no-skills {
+  font-size: 0.8rem;
+  color: var(--fc-gray-400);
+  font-style: italic;
+  font-family: var(--fc-serif);
+}
+
+.findcandidates-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.findcandidates-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--fc-blue-600);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.findcandidates-link:hover {
+  color: var(--fc-blue-800);
+}
+
+.findcandidates-link svg {
+  width: 12px;
+  height: 12px;
+}
+
 /* Divider */
 .findcandidates-card-divider {
   height: 1px;
@@ -788,6 +907,11 @@
   outline: none;
 }
 
+a.findcandidates-btn {
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
 .findcandidates-btn svg {
   width: 13px;
   height: 13px;
@@ -807,13 +931,18 @@
   transform: translateY(-1px);
 }
 
-/* Contacted state */
-.findcandidates-btn-contacted {
-  background: var(--fc-green-600);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.28);
+.findcandidates-btn-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--fc-gray-100) !important;
+  color: var(--fc-gray-500) !important;
+  border: 1.5px solid var(--fc-gray-200) !important;
+  box-shadow: none !important;
   flex: 1;
-  cursor: default;
+}
+
+.findcandidates-btn-disabled:hover {
+  transform: none;
 }
 
 /* Outline */
@@ -929,16 +1058,12 @@
     padding: 0 16px;
   }
 
-  .findcandidates-filter-row {
-    flex-direction: column;
+  .findcandidates-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .findcandidates-search-wrap,
-  .findcandidates-input-wrap,
-  .findcandidates-select-wrap {
-    flex: unset;
-    min-width: 0;
-    width: 100%;
+  .findcandidates-span-2 {
+    grid-column: span 2;
   }
 
   .findcandidates-filter-actions {
@@ -956,6 +1081,16 @@
   }
 }
 
+@media (max-width: 560px) {
+  .findcandidates-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .findcandidates-span-2 {
+    grid-column: span 1;
+  }
+}
+
 @media (max-width: 480px) {
   .findcandidates-filters {
     padding: 16px;
@@ -965,22 +1100,13 @@
     padding: 18px 16px 14px;
   }
 
-  .findcandidates-card-header {
-    padding-right: 0;
-  }
-
-  .findcandidates-available-badge {
-    position: static;
-    align-self: flex-start;
-    order: -1;
-  }
-
   .findcandidates-actions {
-    flex-wrap: wrap;
+    flex-direction: column;
   }
 
-  .findcandidates-btn-ghost,
-  .findcandidates-btn-outline {
-    flex: 1;
+  .findcandidates-btn-outline,
+  .findcandidates-btn-primary {
+    width: 100%;
+    flex: unset;
   }
 }

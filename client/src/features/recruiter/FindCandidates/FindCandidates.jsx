@@ -1,209 +1,311 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getCandidatesForRecruiter } from "../../../services/recruiterService.js";
 import "./FindCandidates.css";
 
-/* ─── Seed Data ─── */
-const ALL_CANDIDATES = [
-  {
-    id: 1, initials: "SR", avatarColor: "#2563eb",
-    name: "Sophia Rivera", title: "Senior Frontend Developer",
-    experience: "6 years", location: "San Francisco, CA",
-    category: "Engineering",
-    experienceLevel: "5+",
-    skills: ["React", "TypeScript", "Next.js", "GraphQL", "CSS"],
-    bio: "I build performant, accessible UIs for product-led startups. Previously led frontend at two Series B companies and love open-source contributions.",
-    available: true,
-  },
-  {
-    id: 2, initials: "MK", avatarColor: "#0891b2",
-    name: "Marcus Klein", title: "Full Stack Engineer",
-    experience: "4 years", location: "Austin, TX",
-    category: "Engineering",
-    experienceLevel: "2–5",
-    skills: ["Node.js", "React", "PostgreSQL", "Docker", "AWS"],
-    bio: "Versatile full-stack engineer who thrives in fast-paced environments. Strong advocate for CI/CD best practices and clean API design.",
-    available: true,
-  },
-  {
-    id: 3, initials: "AL", avatarColor: "#7c3aed",
-    name: "Aisha Lawal", title: "Product Designer",
-    experience: "5 years", location: "Remote",
-    category: "Design",
-    experienceLevel: "5+",
-    skills: ["Figma", "UX Research", "Prototyping", "Design Systems", "Accessibility"],
-    bio: "Product designer with a research-first philosophy. I translate complex user needs into intuitive interfaces and have shipped products used by millions.",
-    available: false,
-  },
-  {
-    id: 4, initials: "JC", avatarColor: "#059669",
-    name: "James Chen", title: "Data Scientist",
-    experience: "3 years", location: "New York, NY",
-    category: "Data",
-    experienceLevel: "2–5",
-    skills: ["Python", "TensorFlow", "SQL", "Pandas", "Tableau"],
-    bio: "Data scientist specialising in NLP and recommendation systems. Published researcher with 3 conference papers and a passion for explainable AI.",
-    available: true,
-  },
-  {
-    id: 5, initials: "PT", avatarColor: "#dc2626",
-    name: "Priya Thakur", title: "DevOps Engineer",
-    experience: "5 years", location: "Seattle, WA",
-    category: "Engineering",
-    experienceLevel: "5+",
-    skills: ["Kubernetes", "Terraform", "AWS", "CI/CD", "Linux"],
-    bio: "Infrastructure and reliability engineer who cut deployment times by 70% at my last role. Passionate about developer experience and platform engineering.",
-    available: true,
-  },
-  {
-    id: 6, initials: "RO", avatarColor: "#d97706",
-    name: "Ryan O'Brien", title: "Mobile Developer",
-    experience: "2 years", location: "Chicago, IL",
-    category: "Engineering",
-    experienceLevel: "2–5",
-    skills: ["React Native", "Swift", "Kotlin", "Firebase", "Redux"],
-    bio: "Mobile developer who shipped 4 production apps with combined 100k+ downloads. Equally comfortable in native Swift and cross-platform React Native.",
-    available: true,
-  },
-  {
-    id: 7, initials: "NG", avatarColor: "#be185d",
-    name: "Nina Garcia", title: "Marketing Strategist",
-    experience: "7 years", location: "Miami, FL",
-    category: "Marketing",
-    experienceLevel: "5+",
-    skills: ["SEO", "Content Strategy", "Google Ads", "Analytics", "HubSpot"],
-    bio: "Growth marketer who scaled inbound pipelines from zero to $2M ARR. Blend of creative storytelling and data-driven optimisation.",
-    available: false,
-  },
-  {
-    id: 8, initials: "DW", avatarColor: "#0f766e",
-    name: "David Wu", title: "Backend Engineer",
-    experience: "1 year", location: "Boston, MA",
-    category: "Engineering",
-    experienceLevel: "0–1",
-    skills: ["Go", "Java", "Spring Boot", "Redis", "gRPC"],
-    bio: "Recent CS graduate with a focus on distributed systems. Built a high-throughput event streaming pipeline as a capstone project using Go and Kafka.",
-    available: true,
-  },
-  {
-    id: 9, initials: "EA", avatarColor: "#6d28d9",
-    name: "Elena Andersson", title: "UX Researcher",
-    experience: "4 years", location: "Remote",
-    category: "Design",
-    experienceLevel: "2–5",
-    skills: ["User Interviews", "Usability Testing", "Figma", "Miro", "A/B Testing"],
-    bio: "Mixed-methods researcher who turns qualitative insights into measurable product improvements. Have run over 200 user interviews across B2B and consumer products.",
-    available: true,
-  },
-];
+const getApiBase = () =>
+  import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+const getServerBase = () => getApiBase().replace(/\/api\/?$/, "");
+const toPublicUrl = (maybePath) => {
+  if (!maybePath) return "";
+  if (/^https?:\/\//i.test(maybePath)) return maybePath;
+  const base = getServerBase();
+  return `${base}/${String(maybePath).replace(/^\/+/, "")}`;
+};
 
-const EXPERIENCE_LEVELS = ["All Levels", "0–1 years", "2–5 years", "5+ years"];
-const CATEGORIES = ["All Categories", "Engineering", "Design", "Data", "Marketing", "Operations"];
+const initialsFromName = (fullName) => {
+  const parts = String(fullName || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  const first = parts[0]?.[0] || "";
+  const second =
+    parts.length > 1 ? parts[parts.length - 1]?.[0] : parts[0]?.[1];
+  return (first + (second || "")).toUpperCase() || "?";
+};
+
+const stringToColor = (str) => {
+  let hash = 0;
+  const s = String(str || "");
+  for (let i = 0; i < s.length; i += 1)
+    hash = s.charCodeAt(i) + ((hash << 5) - hash);
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue} 62% 42%)`;
+};
+
+const emptyFilters = () => ({
+  q: "",
+  location: "",
+  jobTitle: "",
+  skills: "",
+});
 
 /* ─── Icons ─── */
 const SearchIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 );
 const MapPinIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
   </svg>
 );
 const BriefcaseIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
   </svg>
 );
-const ClockIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+const SparklesIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M12 3v2M5.2 5.2l1.4 1.4M3 12h2M5.2 18.8l1.4-1.4M12 21v-2M18.8 18.8l-1.4-1.4M21 12h-2M18.8 5.2l-1.4 1.4" />
+    <circle cx="12" cy="12" r="3" />
   </svg>
 );
 const DownloadIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
   </svg>
 );
-const MessageIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+const MailIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+    <polyline points="22,6 12,13 2,6" />
   </svg>
 );
 const UserIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
   </svg>
 );
 const FilterIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
   </svg>
 );
-const ChevronDownIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="6 9 12 15 18 9" />
-  </svg>
-);
 const XIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
   </svg>
 );
+const ExternalIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+  </svg>
+);
+const AlertIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+  </svg>
+);
+
+function CandidateSkeleton({ index }) {
+  return (
+    <div
+      className="findcandidates-card findcandidates-card--skeleton"
+      style={{ animationDelay: `${index * 60}ms` }}
+    >
+      <div className="findcandidates-card-header">
+        <div className="findcandidates-skel findcandidates-skel-avatar" />
+        <div className="findcandidates-skel-col">
+          <div className="findcandidates-skel findcandidates-skel-line findcandidates-skel-line--lg" />
+          <div className="findcandidates-skel findcandidates-skel-line findcandidates-skel-line--md" />
+          <div className="findcandidates-skel findcandidates-skel-line findcandidates-skel-line--sm" />
+        </div>
+      </div>
+      <div className="findcandidates-skel findcandidates-skel-line findcandidates-skel-line--full" />
+      <div className="findcandidates-skel findcandidates-skel-line findcandidates-skel-line--full" />
+      <div className="findcandidates-skills findcandidates-skills--skeleton">
+        {[1, 2, 3, 4].map((k) => (
+          <span key={k} className="findcandidates-skel findcandidates-skel-chip" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CandidateCard({ candidate, index }) {
+  const user = candidate?.user || {};
+  const name = user.fullName || "Candidate";
+  const title = candidate.jobTitle?.trim() || "Job seeker";
+  const location = user.location?.trim() || "Location not set";
+  const email = user.email || "";
+  const avatarUrl = toPublicUrl(user.avatar);
+  const resumeUrl = toPublicUrl(candidate.resumeUrl);
+  const expCount = Array.isArray(candidate.experience) ? candidate.experience.length : 0;
+  const eduCount = Array.isArray(candidate.education) ? candidate.education.length : 0;
+  const skills = Array.isArray(candidate.skills) ? candidate.skills.filter(Boolean) : [];
+  const bio = (candidate.bio || "").trim() || "No bio yet.";
+  const linkedin = (candidate.linkedin || "").trim();
+  const portfolio = (candidate.portfolio || "").trim();
+
+  const mailHref = email ? `mailto:${encodeURIComponent(email)}` : "";
+
+  return (
+    <article
+      className="findcandidates-card"
+      style={{ animationDelay: `${index * 55}ms` }}
+    >
+      <div className="findcandidates-card-header">
+        {avatarUrl ? (
+          <img
+            className="findcandidates-avatar findcandidates-avatar--img"
+            src={avatarUrl}
+            alt=""
+          />
+        ) : (
+          <div
+            className="findcandidates-avatar"
+            style={{ background: stringToColor(name) }}
+          >
+            {initialsFromName(name)}
+          </div>
+        )}
+        <div className="findcandidates-candidate-info">
+          <h2 className="findcandidates-candidate-name">{name}</h2>
+          <p className="findcandidates-candidate-title">{title}</p>
+          <div className="findcandidates-candidate-meta">
+            <span className="findcandidates-meta-item">
+              <MapPinIcon /> {location}
+            </span>
+            <span className="findcandidates-meta-sep">·</span>
+            <span className="findcandidates-meta-item">
+              {expCount} role{expCount !== 1 ? "s" : ""}
+            </span>
+            <span className="findcandidates-meta-sep">·</span>
+            <span className="findcandidates-meta-item">
+              {eduCount} education
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <p className="findcandidates-bio">{bio}</p>
+
+      {skills.length > 0 ? (
+        <div className="findcandidates-skills">
+          {skills.slice(0, 8).map((skill) => (
+            <span key={skill} className="findcandidates-skill-chip">
+              {skill}
+            </span>
+          ))}
+          {skills.length > 8 && (
+            <span className="findcandidates-skill-chip findcandidates-skill-chip--more">
+              +{skills.length - 8}
+            </span>
+          )}
+        </div>
+      ) : (
+        <p className="findcandidates-no-skills">No skills listed yet.</p>
+      )}
+
+      {(linkedin || portfolio) && (
+        <div className="findcandidates-links">
+          {linkedin && (
+            <a
+              className="findcandidates-link"
+              href={linkedin.startsWith("http") ? linkedin : `https://${linkedin}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ExternalIcon /> LinkedIn
+            </a>
+          )}
+          {portfolio && (
+            <a
+              className="findcandidates-link"
+              href="#"
+            >
+              <ExternalIcon /> Portfolio
+            </a>
+          )}
+        </div>
+      )}
+
+      <div className="findcandidates-card-divider" />
+
+      <div className="findcandidates-actions">
+        {resumeUrl ? (
+          <a
+            className="findcandidates-btn findcandidates-btn-outline"
+            href={resumeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <DownloadIcon /> Resume
+          </a>
+        ) : (
+          <span className="findcandidates-btn findcandidates-btn-disabled" title="No resume uploaded">
+            <DownloadIcon /> No resume
+          </span>
+        )}
+        {mailHref ? (
+          <a className="findcandidates-btn findcandidates-btn-primary">
+            <MailIcon /> message
+          </a>
+        ) : (
+          <span className="findcandidates-btn findcandidates-btn-disabled">
+            <MailIcon /> No email
+          </span>
+        )}
+      </div>
+    </article>
+  );
+}
 
 export default function FindCandidates() {
-  const [keyword, setKeyword] = useState("");
-  const [locationFilter, setLocationFilter] = useState("");
-  const [experienceFilter, setExperienceFilter] = useState("All Levels");
-  const [categoryFilter, setCategoryFilter] = useState("All Categories");
-  const [appliedFilters, setAppliedFilters] = useState(null);
+  const [draft, setDraft] = useState(() => emptyFilters());
+  const [applied, setApplied] = useState(() => emptyFilters());
 
-  const handleSearch = () => {
-    setAppliedFilters({ keyword, locationFilter, experienceFilter, categoryFilter });
-  };
+  const queryKey = useMemo(
+    () => ["recruiter-candidates", applied.q, applied.location, applied.jobTitle, applied.skills],
+    [applied]
+  );
 
-  const handleClear = () => {
-    setKeyword("");
-    setLocationFilter("");
-    setExperienceFilter("All Levels");
-    setCategoryFilter("All Categories");
-    setAppliedFilters(null);
-  };
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
+    queryKey,
+    queryFn: () =>
+      getCandidatesForRecruiter({
+        q: applied.q || undefined,
+        location: applied.location || undefined,
+        jobTitle: applied.jobTitle || undefined,
+        skills: applied.skills || undefined,
+      }),
+  });
 
-  const hasActiveFilters = keyword || locationFilter ||
-    experienceFilter !== "All Levels" || categoryFilter !== "All Categories";
+  const candidates = data?.candidates ?? [];
+  const withResume = useMemo(
+    () => candidates.filter((c) => c?.resumeUrl).length,
+    [candidates]
+  );
 
-  const displayed = useMemo(() => {
-    const f = appliedFilters;
-    if (!f) return ALL_CANDIDATES;
+  const hasDraftFilters =
+    draft.q.trim() ||
+    draft.location.trim() ||
+    draft.jobTitle.trim() ||
+    draft.skills.trim();
 
-    return ALL_CANDIDATES.filter((c) => {
-      const kw = f.keyword.toLowerCase().trim();
-      const matchesKw = !kw ||
-        c.name.toLowerCase().includes(kw) ||
-        c.title.toLowerCase().includes(kw) ||
-        c.skills.some((s) => s.toLowerCase().includes(kw)) ||
-        c.bio.toLowerCase().includes(kw);
+  const hasAppliedFilters =
+    applied.q.trim() ||
+    applied.location.trim() ||
+    applied.jobTitle.trim() ||
+    applied.skills.trim();
 
-      const loc = f.locationFilter.toLowerCase().trim();
-      const matchesLoc = !loc ||
-        c.location.toLowerCase().includes(loc);
+  const handleSearch = useCallback(() => {
+    setApplied({ ...draft });
+  }, [draft]);
 
-      const matchesExp = f.experienceFilter === "All Levels" ||
-        (f.experienceFilter === "0–1 years" && c.experienceLevel === "0–1") ||
-        (f.experienceFilter === "2–5 years" && c.experienceLevel === "2–5") ||
-        (f.experienceFilter === "5+ years" && c.experienceLevel === "5+");
+  const handleClear = useCallback(() => {
+    setDraft(emptyFilters());
+    setApplied(emptyFilters());
+  }, []);
 
-      const matchesCat = f.categoryFilter === "All Categories" ||
-        c.category === f.categoryFilter;
-
-      return matchesKw && matchesLoc && matchesExp && matchesCat;
-    });
-  }, [appliedFilters]);
+  const errMessage =
+    error?.message || error?.error || "Something went wrong. Try again.";
 
   return (
     <div className="findcandidates-page">
-
-      {/* ══ PAGE HEADER ══ */}
       <header className="findcandidates-header">
         <div className="findcandidates-header-bg" aria-hidden="true">
           <div className="fch-ring fch-ring-1" />
@@ -225,207 +327,158 @@ export default function FindCandidates() {
             </div>
             <div>
               <h1 className="findcandidates-title">Find Candidates</h1>
-              <p className="findcandidates-subtitle">Search and discover talented professionals for your job openings.</p>
+              <p className="findcandidates-subtitle">
+                Search your talent pool by skills, role, location, or keywords — powered by live profiles.
+              </p>
             </div>
           </div>
           <div className="findcandidates-header-stats">
             <div className="fch-stat">
-              <span className="fch-stat-num">{ALL_CANDIDATES.length}</span>
-              <span className="fch-stat-label">Talent Pool</span>
+              <span className="fch-stat-num">{isLoading ? "—" : candidates.length}</span>
+              <span className="fch-stat-label">Matching</span>
             </div>
             <div className="fch-stat-sep" />
             <div className="fch-stat">
-              <span className="fch-stat-num">{ALL_CANDIDATES.filter(c => c.available).length}</span>
-              <span className="fch-stat-label">Available Now</span>
+              <span className="fch-stat-num">{isLoading ? "—" : withResume}</span>
+              <span className="fch-stat-label">With resume</span>
             </div>
           </div>
         </div>
       </header>
 
-      {/* ══ FILTERS ══ */}
       <div className="findcandidates-filters-wrap">
         <div className="findcandidates-filters">
-          <div className="findcandidates-filter-row">
-
-            {/* Keyword */}
-            <div className="findcandidates-search-wrap">
+          <div className="findcandidates-filter-grid">
+            <div className="findcandidates-search-wrap findcandidates-span-2">
               <span className="findcandidates-search-icon"><SearchIcon /></span>
               <input
                 className="findcandidates-search"
-                type="text"
-                placeholder="Search by skill, name, or role…"
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
+                type="search"
+                placeholder="Keywords: name, email, title, bio, skills…"
+                value={draft.q}
+                onChange={(e) => setDraft((d) => ({ ...d, q: e.target.value }))}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                aria-label="Search keywords"
               />
             </div>
-
-            {/* Location */}
             <div className="findcandidates-input-wrap">
               <span className="findcandidates-input-icon"><MapPinIcon /></span>
               <input
                 className="findcandidates-input"
                 type="text"
-                placeholder="Location or Remote"
-                value={locationFilter}
-                onChange={(e) => setLocationFilter(e.target.value)}
+                placeholder="Location"
+                value={draft.location}
+                onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                aria-label="Filter by location"
               />
             </div>
-
-            {/* Experience */}
-            <div className="findcandidates-select-wrap">
-              <span className="findcandidates-select-icon"><ClockIcon /></span>
-              <select
-                className="findcandidates-select"
-                value={experienceFilter}
-                onChange={(e) => setExperienceFilter(e.target.value)}
-              >
-                {EXPERIENCE_LEVELS.map((l) => <option key={l}>{l}</option>)}
-              </select>
-              <span className="findcandidates-select-arrow"><ChevronDownIcon /></span>
+            <div className="findcandidates-input-wrap">
+              <span className="findcandidates-input-icon"><BriefcaseIcon /></span>
+              <input
+                className="findcandidates-input"
+                type="text"
+                placeholder="Job title / role"
+                value={draft.jobTitle}
+                onChange={(e) => setDraft((d) => ({ ...d, jobTitle: e.target.value }))}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                aria-label="Filter by job title"
+              />
             </div>
-
-            {/* Category */}
-            <div className="findcandidates-select-wrap">
-              <span className="findcandidates-select-icon"><BriefcaseIcon /></span>
-              <select
-                className="findcandidates-select"
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-              >
-                {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-              </select>
-              <span className="findcandidates-select-arrow"><ChevronDownIcon /></span>
+            <div className="findcandidates-input-wrap findcandidates-span-2">
+              <span className="findcandidates-input-icon"><SparklesIcon /></span>
+              <input
+                className="findcandidates-input"
+                type="text"
+                placeholder="Skills (comma-separated, e.g. React, Node, SQL)"
+                value={draft.skills}
+                onChange={(e) => setDraft((d) => ({ ...d, skills: e.target.value }))}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                aria-label="Filter by skills"
+              />
             </div>
           </div>
 
           <div className="findcandidates-filter-actions">
-            {hasActiveFilters && (
-              <button className="findcandidates-clear-btn" onClick={handleClear}>
+            {(hasDraftFilters || hasAppliedFilters) && (
+              <button type="button" className="findcandidates-clear-btn" onClick={handleClear}>
                 <XIcon /> Clear
               </button>
             )}
-            <button className="findcandidates-search-btn" onClick={handleSearch}>
-              <FilterIcon /> Search Candidates
+            <button type="button" className="findcandidates-search-btn" onClick={handleSearch}>
+              <FilterIcon /> {isFetching ? "Searching…" : "Search candidates"}
             </button>
           </div>
         </div>
       </div>
 
-      {/* ══ RESULTS ══ */}
       <div className="findcandidates-body">
-
-        {/* Results meta */}
         <div className="findcandidates-results-meta">
           <span className="findcandidates-results-count">
-            {appliedFilters
-              ? `${displayed.length} candidate${displayed.length !== 1 ? "s" : ""} found`
-              : `Showing all ${ALL_CANDIDATES.length} candidates`}
+            {isLoading
+              ? "Loading candidates…"
+              : hasAppliedFilters
+                ? `${candidates.length} candidate${candidates.length !== 1 ? "s" : ""} match your filters`
+                : `${candidates.length} candidate${candidates.length !== 1 ? "s" : ""} in the pool`}
           </span>
-          {appliedFilters && displayed.length > 0 && (
-            <button className="findcandidates-results-clear" onClick={handleClear}>
+          {isFetching && !isLoading && (
+            <span className="findcandidates-updating">Updating…</span>
+          )}
+          {hasAppliedFilters && candidates.length > 0 && (
+            <button type="button" className="findcandidates-results-clear" onClick={handleClear}>
               Clear filters
             </button>
           )}
         </div>
 
-        {/* Empty state */}
-        {displayed.length === 0 ? (
+        {isError && (
+          <div className="findcandidates-error" role="alert">
+            <span className="findcandidates-error-icon"><AlertIcon /></span>
+            <div>
+              <strong>Couldn’t load candidates</strong>
+              <p>{typeof errMessage === "string" ? errMessage : "Please try again."}</p>
+            </div>
+            <button type="button" className="findcandidates-btn findcandidates-btn-primary findcandidates-error-retry" onClick={() => refetch()}>
+              Retry
+            </button>
+          </div>
+        )}
+
+        {!isError && isLoading && (
+          <div className="findcandidates-list findcandidates-list--skeleton">
+            {Array.from({ length: 6 }, (_, i) => (
+              <CandidateSkeleton key={i} index={i} />
+            ))}
+          </div>
+        )}
+
+        {!isError && !isLoading && candidates.length === 0 && (
           <div className="findcandidates-empty">
             <div className="findcandidates-empty-icon">
               <UserIcon />
             </div>
-            <h3 className="findcandidates-empty-title">No Candidates Found</h3>
+            <h3 className="findcandidates-empty-title">No candidates found</h3>
             <p className="findcandidates-empty-desc">
-              Try adjusting your filters or broadening your search terms to discover more talent.
+              {hasAppliedFilters
+                ? "Try broader keywords, fewer skills, or a different location."
+                : "No job seeker profiles are registered yet."}
             </p>
-            <button className="findcandidates-btn findcandidates-btn-primary" onClick={handleClear}>
-              Reset Filters
-            </button>
+            {hasAppliedFilters && (
+              <button type="button" className="findcandidates-btn findcandidates-btn-primary" onClick={handleClear}>
+                Reset filters
+              </button>
+            )}
           </div>
-        ) : (
+        )}
+
+        {!isError && !isLoading && candidates.length > 0 && (
           <div className="findcandidates-list">
-            {displayed.map((candidate, idx) => (
-              <CandidateCard key={candidate.id} candidate={candidate} index={idx} />
+            {candidates.map((c, idx) => (
+              <CandidateCard key={c._id || idx} candidate={c} index={idx} />
             ))}
           </div>
         )}
       </div>
     </div>
-  );
-}
-
-/* ─── Candidate Card ─── */
-function CandidateCard({ candidate, index }) {
-  const [contacted, setContacted] = useState(false);
-
-  return (
-    <article
-      className="findcandidates-card"
-      style={{ animationDelay: `${index * 70}ms` }}
-    >
-      {/* Availability ribbon */}
-      {candidate.available && (
-        <div className="findcandidates-available-badge">
-          <span className="findcandidates-available-dot" />
-          Available
-        </div>
-      )}
-
-      {/* Card header */}
-      <div className="findcandidates-card-header">
-        <div
-          className="findcandidates-avatar"
-          style={{ background: candidate.avatarColor }}
-        >
-          {candidate.initials}
-        </div>
-        <div className="findcandidates-candidate-info">
-          <h2 className="findcandidates-candidate-name">{candidate.name}</h2>
-          <p className="findcandidates-candidate-title">{candidate.title}</p>
-          <div className="findcandidates-candidate-meta">
-            <span className="findcandidates-meta-item">
-              <MapPinIcon /> {candidate.location}
-            </span>
-            <span className="findcandidates-meta-sep">·</span>
-            <span className="findcandidates-meta-item">
-              <ClockIcon /> {candidate.experience}
-            </span>
-            <span className="findcandidates-meta-sep">·</span>
-            <span className="findcandidates-category-tag">{candidate.category}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Bio */}
-      <p className="findcandidates-bio">{candidate.bio}</p>
-
-      {/* Skills */}
-      <div className="findcandidates-skills">
-        {candidate.skills.map((skill) => (
-          <span key={skill} className="findcandidates-skill-chip">{skill}</span>
-        ))}
-      </div>
-
-      {/* Divider */}
-      <div className="findcandidates-card-divider" />
-
-      {/* Actions */}
-      <div className="findcandidates-actions">
-        <button className="findcandidates-btn findcandidates-btn-ghost">
-          <UserIcon /> View Profile
-        </button>
-        <button className="findcandidates-btn findcandidates-btn-outline">
-          <DownloadIcon /> Resume
-        </button>
-        <button
-          className={`findcandidates-btn ${contacted ? "findcandidates-btn-contacted" : "findcandidates-btn-primary"}`}
-          onClick={() => setContacted(true)}
-        >
-          <MessageIcon /> {contacted ? "Contacted!" : "Contact"}
-        </button>
-      </div>
-    </article>
   );
 }

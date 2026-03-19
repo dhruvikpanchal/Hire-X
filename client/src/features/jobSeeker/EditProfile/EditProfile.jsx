@@ -1,4 +1,12 @@
-import React, { useState, useRef } from "react";
+/* eslint-disable react-hooks/set-state-in-effect */
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getMyJobSeekerProfile,
+  updateJobSeekerProfile,
+  uploadResume,
+} from "../../../services/jobSeekerService";
+import React, { useState, useRef, useEffect } from "react";
 import "./EditProfile.css";
 
 /* ─── Default form values ─── */
@@ -16,83 +24,203 @@ const DEFAULT_FORM = {
 
 /* ─── SVG Icons ─── */
 const CameraIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
     <circle cx="12" cy="13" r="4" />
   </svg>
 );
 const UserIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
   </svg>
 );
 const MailIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+    <polyline points="22,6 12,13 2,6" />
   </svg>
 );
 const PhoneIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 12 19.79 19.79 0 0 1 1.07 3.38 2 2 0 0 1 3.05 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z" />
   </svg>
 );
 const MapPinIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+    <circle cx="12" cy="10" r="3" />
   </svg>
 );
 const BriefcaseIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
   </svg>
 );
 const TagIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" /><line x1="7" y1="7" x2="7.01" y2="7" />
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+    <line x1="7" y1="7" x2="7.01" y2="7" />
   </svg>
 );
 const LinkedInIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect x="2" y="9" width="4" height="12" /><circle cx="4" cy="4" r="2" />
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+    <rect x="2" y="9" width="4" height="12" />
+    <circle cx="4" cy="4" r="2" />
   </svg>
 );
 const GlobeIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="10" />
+    <line x1="2" y1="12" x2="22" y2="12" />
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
   </svg>
 );
 const UploadIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" />
+    <line x1="12" y1="3" x2="12" y2="15" />
   </svg>
 );
 const FileIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
   </svg>
 );
 const TrashIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" />
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    <path d="M10 11v6M14 11v6" />
   </svg>
 );
 const CheckIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <polyline points="20 6 9 17 4 12" />
   </svg>
 );
 const SaveIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" />
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+    <polyline points="17 21 17 13 7 13 7 21" />
+    <polyline points="7 3 7 8 15 8" />
   </svg>
 );
 
 /* ─── Field component ─── */
 function Field({ label, hint, icon: Icon, error, children }) {
   return (
-    <div className={`editprofile-field ${error ? "editprofile-field-error" : ""}`}>
+    <div
+      className={`editprofile-field ${error ? "editprofile-field-error" : ""}`}
+    >
       <label className="editprofile-label">
-        {Icon && <span className="editprofile-label-icon"><Icon /></span>}
+        {Icon && (
+          <span className="editprofile-label-icon">
+            <Icon />
+          </span>
+        )}
         {label}
         {hint && <span className="editprofile-label-hint">{hint}</span>}
       </label>
@@ -104,18 +232,29 @@ function Field({ label, hint, icon: Icon, error, children }) {
 
 /* ─── Main component ─── */
 export default function EditProfile() {
+  const queryClient = useQueryClient();
+  const [avatarFile, setAvatarFile] = useState(null);
   const [form, setForm] = useState(DEFAULT_FORM);
   const [errors, setErrors] = useState({});
   const [avatarSrc, setAvatarSrc] = useState(null);
   const [resumeFile, setResumeFile] = useState(null);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [skills, setSkills] = useState(
-    DEFAULT_FORM.skills.split(",").map((s) => s.trim()).filter(Boolean)
+    DEFAULT_FORM.skills
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
   );
   const [skillInput, setSkillInput] = useState("");
 
   const avatarInputRef = useRef(null);
   const resumeInputRef = useRef(null);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["myProfile"],
+    queryFn: getMyJobSeekerProfile,
+  });
 
   /* ── Handlers ── */
   const handleChange = (field, value) => {
@@ -126,6 +265,9 @@ export default function EditProfile() {
   const handleAvatarChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    setAvatarFile(file);
+
     const url = URL.createObjectURL(file);
     setAvatarSrc(url);
   };
@@ -158,44 +300,146 @@ export default function EditProfile() {
     }
   };
 
-  const removeSkill = (skill) => setSkills((prev) => prev.filter((s) => s !== skill));
+  const removeSkill = (skill) =>
+    setSkills((prev) => prev.filter((s) => s !== skill));
 
   /* Validate */
   const validate = () => {
     const errs = {};
     if (!form.fullName.trim()) errs.fullName = "Full name is required.";
     if (!form.email.trim()) errs.email = "Email is required.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = "Enter a valid email address.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      errs.email = "Enter a valid email address.";
     if (!form.jobTitle.trim()) errs.jobTitle = "Job title is required.";
     if (!form.bio.trim()) errs.bio = "Please write a short bio.";
     return errs;
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
+
     const errs = validate();
     if (Object.keys(errs).length) {
       setErrors(errs);
-      const firstKey = Object.keys(errs)[0];
-      document.getElementById(`ep-${firstKey}`)?.focus();
       return;
     }
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+
+    try {
+      // DEBUG: verify payload before API call
+      console.log("[EditProfile] submitting payload", {
+        ...form,
+        skills,
+        avatar: avatarFile
+          ? { name: avatarFile.name, type: avatarFile.type, size: avatarFile.size }
+          : null,
+        hasToken: Boolean(localStorage.getItem("token")),
+      });
+
+      // IMPORTANT: service expects a plain object, not FormData
+      await mutation.mutateAsync({
+        ...form,
+        skills,
+        avatar: avatarFile || null,
+      });
+
+      // 🔥 upload resume separately
+      if (resumeFile) {
+        await uploadResume(resumeFile);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleCancel = () => {
-    setForm(DEFAULT_FORM);
-    setSkills(DEFAULT_FORM.skills.split(",").map((s) => s.trim()).filter(Boolean));
+    if (data?.profile) {
+      const p = data.profile;
+
+      setForm({
+        fullName: p.user?.fullName || "",
+        email: p.user?.email || "",
+        phone: p.user?.phone || "",
+        location: p.user?.location || "",
+        jobTitle: p.jobTitle || "",
+        bio: p.bio || "",
+        linkedin: p.linkedin || "",
+        portfolio: p.portfolio || "",
+      });
+
+      setSkills(Array.isArray(p.skills) ? p.skills : []);
+      setAvatarSrc(
+        p.user?.avatar ? `http://localhost:3000/${p.user.avatar}` : null,
+      );
+    }
+
     setErrors({});
-    setAvatarSrc(null);
     setResumeFile(null);
   };
+
+  const mutation = useMutation({
+    mutationFn: updateJobSeekerProfile,
+    onSuccess: (res) => {
+      queryClient.invalidateQueries(["myProfile"]);
+    
+      // 🔥 clear local preview
+      setAvatarFile(null);
+    
+      // 🔥 IMPORTANT: set backend image directly
+      if (res?.profile?.user?.avatar) {
+        setAvatarSrc(`http://localhost:3000${res.profile.user.avatar}`);
+      }
+    
+      setSaved(true);
+      setSaveError("");
+      setTimeout(() => setSaved(false), 3000);
+    },
+    onError: (err) => {
+      console.error(err);
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to save profile. Please try again.";
+      setSaveError(msg);
+    },
+  });
+
+  useEffect(() => {
+    if (data?.profile) {
+      const p = data.profile;
+
+      setForm({
+        fullName: p.user?.fullName || "",
+        email: p.user?.email || "",
+        phone: p.user?.phone || "",
+        location: p.user?.location || "",
+        jobTitle: p.jobTitle || "",
+        bio: p.bio || "",
+        linkedin: p.linkedin || "",
+        portfolio: p.portfolio || "",
+      });
+
+      setSkills(Array.isArray(p.skills) ? p.skills : []);
+
+      if (!avatarFile && p.user?.avatar) {
+  setAvatarSrc(`http://localhost:3000${p.user.avatar}`);
+}
+    }
+  }, [data]);
+
+  // separate cleanup
+  useEffect(() => {
+    return () => {
+      if (avatarSrc) URL.revokeObjectURL(avatarSrc);
+    };
+  }, [avatarSrc]);
+
+  if (isLoading) {
+    return <div>Loading profile...</div>;
+  }
 
   /* ─── Render ─── */
   return (
     <div className="editprofile-page">
-
       {/* ── Page header ── */}
       <div className="editprofile-page-header">
         <div className="editprofile-page-header-inner">
@@ -205,7 +449,9 @@ export default function EditProfile() {
             </div>
             <div>
               <h1 className="editprofile-page-title">Edit Profile</h1>
-              <p className="editprofile-page-subtitle">Update your personal and professional details.</p>
+              <p className="editprofile-page-subtitle">
+                Update your personal and professional details.
+              </p>
             </div>
           </div>
 
@@ -220,8 +466,12 @@ export default function EditProfile() {
 
       {/* ── Form container ── */}
       <div className="editprofile-container">
+        {saveError && (
+          <div className="editprofile-save-error" role="alert">
+            {saveError}
+          </div>
+        )}
         <form className="editprofile-form" onSubmit={handleSave} noValidate>
-
           {/* ════ SECTION: Avatar ════ */}
           <div className="editprofile-section">
             <h2 className="editprofile-section-heading">
@@ -232,7 +482,11 @@ export default function EditProfile() {
             <div className="editprofile-avatar-row">
               <div className="editprofile-avatar-wrap">
                 {avatarSrc ? (
-                  <img src={avatarSrc} alt="Profile preview" className="editprofile-avatar-img" />
+                  <img
+                    src={avatarSrc}
+                    alt="Profile preview"
+                    className="editprofile-avatar-img"
+                  />
                 ) : (
                   <div className="editprofile-avatar-placeholder">AM</div>
                 )}
@@ -247,8 +501,12 @@ export default function EditProfile() {
               </div>
 
               <div className="editprofile-avatar-info">
-                <p className="editprofile-avatar-info-title">Upload a profile photo</p>
-                <p className="editprofile-avatar-info-desc">JPG, PNG or GIF · Max 5 MB · Recommended 400×400px</p>
+                <p className="editprofile-avatar-info-title">
+                  Upload a profile photo
+                </p>
+                <p className="editprofile-avatar-info-desc">
+                  JPG, PNG or GIF · Max 5 MB · Recommended 400×400px
+                </p>
                 <div className="editprofile-avatar-btns">
                   <button
                     type="button"
@@ -261,7 +519,10 @@ export default function EditProfile() {
                     <button
                       type="button"
                       className="editprofile-btn editprofile-btn-ghost-sm"
-                      onClick={() => setAvatarSrc(null)}
+                      onClick={() => {
+                        setAvatarSrc(null);
+                        setAvatarFile(null);
+                      }}
                     >
                       Remove
                     </button>
@@ -342,7 +603,11 @@ export default function EditProfile() {
             </h2>
 
             <div className="editprofile-stack">
-              <Field label="Job Title / Profession" icon={BriefcaseIcon} error={errors.jobTitle}>
+              <Field
+                label="Job Title / Profession"
+                icon={BriefcaseIcon}
+                error={errors.jobTitle}
+              >
                 <input
                   id="ep-jobTitle"
                   className="editprofile-input"
@@ -356,9 +621,13 @@ export default function EditProfile() {
               {/* Skills pill input */}
               <div className="editprofile-field">
                 <label className="editprofile-label">
-                  <span className="editprofile-label-icon"><TagIcon /></span>
+                  <span className="editprofile-label-icon">
+                    <TagIcon />
+                  </span>
                   Skills
-                  <span className="editprofile-label-hint">press Enter or comma to add</span>
+                  <span className="editprofile-label-hint">
+                    press Enter or comma to add
+                  </span>
                 </label>
                 <div className="editprofile-skills-box">
                   {skills.map((skill) => (
@@ -369,17 +638,25 @@ export default function EditProfile() {
                         className="editprofile-skill-remove"
                         onClick={() => removeSkill(skill)}
                         aria-label={`Remove ${skill}`}
-                      >×</button>
+                      >
+                        ×
+                      </button>
                     </span>
                   ))}
                   <input
                     className="editprofile-skills-input"
                     type="text"
-                    placeholder={skills.length === 0 ? "e.g. React, Node.js, Figma…" : "Add skill…"}
+                    placeholder={
+                      skills.length === 0
+                        ? "e.g. React, Node.js, Figma…"
+                        : "Add skill…"
+                    }
                     value={skillInput}
                     onChange={(e) => setSkillInput(e.target.value)}
                     onKeyDown={handleSkillKeyDown}
-                    onBlur={() => { if (skillInput.trim()) addSkill(skillInput); }}
+                    onBlur={() => {
+                      if (skillInput.trim()) addSkill(skillInput);
+                    }}
                   />
                 </div>
               </div>
@@ -393,7 +670,9 @@ export default function EditProfile() {
                   value={form.bio}
                   onChange={(e) => handleChange("bio", e.target.value)}
                 />
-                <span className="editprofile-char-count">{form.bio.length} / 600</span>
+                <span className="editprofile-char-count">
+                  {form.bio.length} / 600
+                </span>
               </Field>
             </div>
           </div>
@@ -408,20 +687,38 @@ export default function EditProfile() {
             </h2>
 
             <div className="editprofile-grid-2">
-              <Field label="LinkedIn Profile" icon={LinkedInIcon} hint="optional">
+              <Field
+                label="LinkedIn Profile"
+                icon={LinkedInIcon}
+                hint="optional"
+              >
                 <div className="editprofile-input-prefix-wrap">
-                  <span className="editprofile-input-prefix">linkedin.com/in/</span>
+                  <span className="editprofile-input-prefix">
+                    linkedin.com/in/
+                  </span>
                   <input
                     className="editprofile-input editprofile-input-with-prefix"
                     type="text"
                     placeholder="yourhandle"
-                    value={form.linkedin.replace("linkedin.com/in/", "")}
-                    onChange={(e) => handleChange("linkedin", "linkedin.com/in/" + e.target.value)}
+                    value={(form.linkedin || "").replace(
+                      "linkedin.com/in/",
+                      "",
+                    )}
+                    onChange={(e) =>
+                      handleChange(
+                        "linkedin",
+                        "linkedin.com/in/" + e.target.value,
+                      )
+                    }
                   />
                 </div>
               </Field>
 
-              <Field label="Portfolio / Website" icon={GlobeIcon} hint="optional">
+              <Field
+                label="Portfolio / Website"
+                icon={GlobeIcon}
+                hint="optional"
+              >
                 <input
                   className="editprofile-input"
                   type="url"
@@ -449,7 +746,9 @@ export default function EditProfile() {
                   <FileIcon />
                 </div>
                 <div className="editprofile-resume-info">
-                  <span className="editprofile-resume-name">{resumeFile.name}</span>
+                  <span className="editprofile-resume-name">
+                    {resumeFile.name}
+                  </span>
                   <span className="editprofile-resume-size">
                     {(resumeFile.size / 1024).toFixed(0)} KB · Uploaded just now
                   </span>
@@ -469,7 +768,9 @@ export default function EditProfile() {
                 onClick={() => resumeInputRef.current?.click()}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && resumeInputRef.current?.click()}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && resumeInputRef.current?.click()
+                }
               >
                 <div className="editprofile-resume-upload-icon">
                   <UploadIcon />
@@ -477,7 +778,9 @@ export default function EditProfile() {
                 <p className="editprofile-resume-drop-title">
                   Click to upload your resume
                 </p>
-                <p className="editprofile-resume-drop-desc">PDF or DOC · Max 10 MB</p>
+                <p className="editprofile-resume-drop-desc">
+                  PDF or DOC · Max 10 MB
+                </p>
               </div>
             )}
             <input
@@ -500,12 +803,22 @@ export default function EditProfile() {
             </button>
             <button
               type="submit"
+              disabled={mutation.isPending}
               className={`editprofile-btn editprofile-btn-primary ${saved ? "editprofile-btn-saved" : ""}`}
             >
-              {saved ? <><CheckIcon /> Saved!</> : <><SaveIcon /> Save Changes</>}
+              {mutation.isPending ? (
+                "Saving..."
+              ) : saved ? (
+                <>
+                  <CheckIcon /> Saved!
+                </>
+              ) : (
+                <>
+                  <SaveIcon /> Save Changes
+                </>
+              )}
             </button>
           </div>
-
         </form>
       </div>
     </div>

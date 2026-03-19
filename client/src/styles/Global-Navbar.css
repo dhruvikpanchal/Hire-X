@@ -475,11 +475,11 @@
 .navbar-profile-btn {
     display: flex;
     align-items: center;
-    justify-content: center;
-    height: 60px;
-    width: 180px;
-    gap: 8px;
-    padding: 6px 14px;
+    justify-content: flex-start;
+    height: 52px;
+    width: 220px;
+    gap: 10px;
+    padding: 6px 12px;
     border-radius: var(--radius-full);
     background: var(--nav-bg-glass-light);
     backdrop-filter: blur(var(--blur-sm));
@@ -494,12 +494,48 @@
     box-shadow: var(--shadow-primary-sm);
 }
 
+.navbar-profile-btn.open {
+    border-color: color-mix(in srgb, var(--primary) 35%, white);
+    box-shadow: var(--shadow-primary-sm);
+}
+
 /* Avatar improvement */
 .navbar-avatar {
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     border: 2px solid var(--color-primary-20);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.navbar-avatar-fallback {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: var(--fw-bold);
+}
+
+.navbar-profile-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+    font-size: var(--font-size-sm-plus);
+}
+
+.navbar-profile-caret {
+    transition: transform 0.2s ease;
+    color: var(--text-muted);
+}
+
+.navbar-profile-caret.rotated {
+    transform: rotate(180deg);
 }
 
 /* ===================================
@@ -517,7 +553,8 @@
     position: absolute;
     top: calc(100%);
     right: 0;
-    width: 160px;
+    width: 190px;
+    margin-top: 10px;
 
     background: var(--nav-bg-glass-strong);
     backdrop-filter: blur(var(--blur-lg));
@@ -526,22 +563,12 @@
     border: var(--border-subtle-solid);
     box-shadow: var(--shadow-xl);
 
-    opacity: 0;
-    transform: translateY(10px);
-    pointer-events: none;
-
-    transition: all 0.25s ease;
-}
-
-/* Show dropdown when hover profile */
-.navbar-profile:hover .navbar-dropdown {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
+    overflow: hidden;
+    z-index: 50;
 }
 
 .navbar-dropdown button {
-    padding: 10px 16px;
+    padding: 11px 16px;
     background: transparent;
     border: none;
     font-size: var(--font-size-sm-plus);
@@ -555,6 +582,16 @@
     color: var(--primary);
 }
 
+.navbar-dropdown-menu {
+    transform-origin: top right;
+}
+
 .navbar-profile {
     padding-bottom: 8px;
+}
+
+@media (max-width: 1200px) {
+    .navbar-profile-btn {
+        width: 180px;
+    }
 }

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom"; // ✅ ADD useLocation
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -8,9 +8,14 @@ import { Mail, ArrowLeft, KeyRound } from "lucide-react";
 // import files
 import "./VerifyEmail.css";
 import { Image } from "../../../utils/image_paths.js";
+import authService from "../../../services/authService.js"; // ✅ ADD
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ GET email from previous page
+  const [loading, setLoading] = useState(false);
+
+  const email = location.state?.email; // ✅ get email
 
   // react hook form
   const {
@@ -44,17 +49,67 @@ const VerifyEmail = () => {
           </motion.div>
         ),
         {
-          duration: 2500 + index * 150, // staggered duration prevents overlapping glitch
+          duration: 2500 + index * 150,
           position: "top-right",
         }
       );
     });
   };
 
-  const onSubmit = (data) => {
-    console.log("Verification code submitted:", data);
-    // Add verification logic here
-    navigate("/reset-password");
+  // ✅ UPDATED SUBMIT FUNCTION
+  const onSubmit = async (data) => {
+    try {
+      if (!email) {
+        toast.error("Email missing. Please try again.");
+        navigate("/forgot-password");
+        return;
+      }
+
+      setLoading(true);
+
+      const res = await authService.verifyOTP({
+        email,
+        otp: data.otp,
+      });
+
+      if (res.success) {
+        toast.success(res.message || "OTP verified");
+
+        // 👉 go to reset password page with email
+        navigate("/reset-password", {
+          state: { email },
+        });
+      } else {
+        toast.error(res.message || "Invalid OTP");
+      }
+
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Server error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ RESEND OTP
+  const handleResend = async () => {
+    try {
+      if (!email) {
+        toast.error("Email missing");
+        return;
+      }
+
+      const res = await authService.forgotPassword(email);
+
+      if (res.success) {
+        toast.success("OTP resent successfully");
+      } else {
+        toast.error(res.message);
+      }
+    } catch (error) {
+      toast.error("Error resending OTP");
+    }
   };
 
   return (
@@ -75,15 +130,15 @@ const VerifyEmail = () => {
 
         {/* Header */}
         <div className="verify-header">
-          <h1>Email Verification</h1>
-          <p>
-            We've sent a verification code to your email address. Please enter
-            it below to confirm your account.
-          </p>
+          <h1>OTP Verification</h1>
+          <p>Enter the 6-digit OTP sent to your email.</p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit, showErrors)} className="verify-form">
+        <form
+          onSubmit={handleSubmit(onSubmit, showErrors)}
+          className="verify-form"
+        >
           <div className="form-group">
             <label htmlFor="otp">Verification Code</label>
             <div className="input-wrapper">
@@ -96,27 +151,37 @@ const VerifyEmail = () => {
                 autoComplete="one-time-code"
                 {...register("otp", {
                   required: "OTP required",
-                  minLength: { value: 6, message: "OTP must be 6 digits" }
+                  minLength: {
+                    value: 6,
+                    message: "OTP must be 6 digits",
+                  },
                 })}
               />
             </div>
           </div>
+
           <motion.button
             type="submit"
             className="btn-submit"
+            disabled={loading}
             whileHover={{ scale: 1.02, y: -1 }}
             whileTap={{ scale: 0.98 }}
           >
-            Verify My Account
+            {loading ? "Verifying..." : "Verify OTP"}
           </motion.button>
 
           <div className="form-footer-links">
             <p className="resend-text">
               Didn't receive any code?{" "}
-              <button type="button" className="resend-btn">
+              <button
+                type="button"
+                className="resend-btn"
+                onClick={handleResend} // ✅ ADD
+              >
                 Resend
               </button>
             </p>
+
             <Link to="/login" className="back-link">
               <ArrowLeft size={14} /> Back to Sign In
             </Link>

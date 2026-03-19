@@ -13,10 +13,11 @@ import JobSeekerCompanies from "../features/jobSeeker/Companies/Companies";
 import JobSeekerJobSearch from "../features/jobSeeker/JobSearch/JobSearch";
 import Profile from "../features/jobSeeker/Profile/Profile";
 import SavedJobs from "../features/jobSeeker/SavedJobs/SavedJobs";
-import JobAlerts from "../features/jobSeeker/JobAlerts/JobAlerts";
+// import JobAlerts from "../features/jobSeeker/JobAlerts/JobAlerts";
 import MyApplications from "../features/jobSeeker/MyApplications/MyApplications";
 import JobSeekerMessages from "../features/jobSeeker/Messages/Messages";
 import JobSeekerEditProfile from "../features/jobSeeker/EditProfile/EditProfile";
+import JobSeekerEditCareer from "../features/jobSeeker/EditCareer/EditCareer";
 
 // Recruiter Pages
 import RecruiterDashboard from "../features/recruiter/recruiter_dashboard/recruiter_dashboard";
@@ -71,11 +72,15 @@ function AppContent() {
         <Route path="/jobSeeker/companies" element={<JobSeekerCompanies />} />
         <Route path="/jobSeeker/jobSearch" element={<JobSeekerJobSearch />} />
         <Route path="/jobSeeker/profile" element={<Profile />} />
-        <Route path="/jobSeeker/jobAlerts" element={<JobAlerts />} />
+        {/* <Route path="/jobSeeker/jobAlerts" element={<JobAlerts />} /> */}
         <Route path="/jobSeeker/messages" element={<JobSeekerMessages />} />
         <Route path="/jobSeeker/savedJobs" element={<SavedJobs />} />
         <Route path="/jobSeeker/myApplications" element={<MyApplications />} />
-        <Route path="/jobSeeker/EditProfile" element={<JobSeekerEditProfile />} />
+        <Route path="/jobSeeker/editCareer" element={<JobSeekerEditCareer />} />
+        <Route
+          path="/jobSeeker/EditProfile"
+          element={<JobSeekerEditProfile />}
+        />
       </Route>
 
       {/* RecruiterLayout Layout */}
@@ -84,11 +89,15 @@ function AppContent() {
         <Route path="/recruiter/dashboard" element={<RecruiterDashboard />} />
         <Route path="/recruiter/findCandidates" element={<FindCandidates />} />
         <Route path="/recruiter/Post" element={<PostJob />} />
+        <Route path="/recruiter/jobs/edit/:id" element={<PostJob />} />
         <Route path="/recruiter/my-jobs" element={<MyJobs />} />
         <Route path="/recruiter/applications" element={<Applications />} />
         <Route path="/recruiter/messages" element={<RecruiterMessages />} />
         <Route path="/recruiter/profile" element={<RecruiterProfile />} />
-        <Route path="/recruiter/editProfile" element={<RecruiterEditProfile />} />
+        <Route
+          path="/recruiter/editProfile"
+          element={<RecruiterEditProfile />}
+        />
         <Route path="/recruiter/pricing" element={<RecruiterPricing />} />
       </Route>
     </Routes>

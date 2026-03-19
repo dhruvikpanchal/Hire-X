@@ -42,9 +42,14 @@ const Login = () => {
     onSuccess: (data) => {
       console.log("Login successful:", data);
 
+      // ✅ SAVE TOKEN (THIS WAS MISSING)
+      localStorage.setItem("token", data.token);
+
+      // ✅ SAVE USER (ADD THIS HERE)
+      localStorage.setItem("user", JSON.stringify(data.user));
+
       toast.success("Login successful!");
 
-      // redirect based on role
       if (data.user.role === "jobseeker") {
         navigate("/jobseeker/dashboard");
       } else {

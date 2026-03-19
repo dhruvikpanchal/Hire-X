@@ -1,21 +1,4 @@
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-
-// Create generic axios instance with interceptor to attach JWT tokens to protected routes in the future
-const axiosInstance = axios.create({
-    baseURL: API_URL,
-});
-
-axiosInstance.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-}, (error) => {
-    return Promise.reject(error);
-});
+import axiosInstance from "./apiService.js";
 
 export const authService = {
     // 1. Register User
@@ -51,6 +34,26 @@ export const authService = {
         }
     },
 
+    // 4. Forgot Password (send OTP)
+    forgotPassword: async (email) => {
+        const response = await axiosInstance.post('/auth/forgot-password', { email });
+        return response.data;
+    },
+    
+    // 5. Verify OTP
+    verifyOTP: async (data) => {
+        // data = { email, otp }
+        const response = await axiosInstance.post('/auth/verify-otp', data);
+        return response.data;
+    },
+    
+    // 6. Reset Password
+    resetPassword: async (data) => {
+        // data = { email, newPassword }
+        const response = await axiosInstance.post('/auth/reset-password', data);
+        return response.data;
+    },
+    
     // Utilities to get current state
     getCurrentUser: () => {
         const user = localStorage.getItem('user');

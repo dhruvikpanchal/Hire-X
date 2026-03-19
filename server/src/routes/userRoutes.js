@@ -2,8 +2,9 @@ import express from "express";
 import {
     getUserProfile,
     updateUserProfile,
-    deleteUserAccount
-} from "../controllers/user.controller.js";
+    deleteUserAccount,
+    searchUsers,
+} from "../controllers/user.Controller.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
@@ -12,6 +13,7 @@ const router = express.Router();
 router.use(authMiddleware);
 
 router.get("/profile", getUserProfile);
+router.get("/search", searchUsers);
 router.put("/profile", updateUserProfile);
 router.delete("/profile", deleteUserAccount);
 

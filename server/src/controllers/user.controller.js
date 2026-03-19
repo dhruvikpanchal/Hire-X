@@ -112,3 +112,34 @@ export const deleteUserAccount = async (req, res) => {
         });
     }
 };
+
+// @desc    Search users by name/email
+// @route   GET /api/users/search?q=...
+// @access  Private
+export const searchUsers = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const q = String(req.query.q || "").trim();
+
+        if (!q || q.length < 2) {
+            return res.status(200).json({ success: true, users: [] });
+        }
+
+        const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+        const users = await User.find({
+            _id: { $ne: userId },
+            $or: [{ fullName: regex }, { email: regex }],
+        })
+            .select("fullName email avatar role")
+            .limit(15)
+            .lean();
+
+        return res.status(200).json({ success: true, users });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error: error.message,
+        });
+    }
+};

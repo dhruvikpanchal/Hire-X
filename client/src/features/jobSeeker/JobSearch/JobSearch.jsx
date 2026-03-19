@@ -1,124 +1,421 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useMemo, useRef, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Search,
   MapPin,
   Briefcase,
   DollarSign,
   Clock,
-  Filter,
   Building2,
+  FileText,
+  Upload,
+  X,
+  CheckCircle,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 
 // import files
 import "./JobSearch.css";
 
-// Mock Data
-const MOCK_JOBS = [
-  {
-    id: 1,
-    title: "Senior Frontend Developer",
-    company: "TechCorp Inc.",
-    location: "San Francisco, CA",
-    type: "Full-time",
-    level: "Senior",
-    salary: "$120k - $160k",
-    posted: "2 days ago",
-    logo: "TC",
-  },
-  {
-    id: 2,
-    title: "Product Designer",
-    company: "Creative Studio",
-    location: "Remote",
-    type: "Full-time",
-    level: "Mid-Level",
-    salary: "$90k - $130k",
-    posted: "5 hours ago",
-    logo: "CS",
-  },
-  {
-    id: 3,
-    title: "Backend Engineer (Go)",
-    company: "StreamLine",
-    location: "New York, NY",
-    type: "Contract",
-    level: "Senior",
-    salary: "$80 - $120 / hr",
-    posted: "1 day ago",
-    logo: "SL",
-  },
-  {
-    id: 4,
-    title: "Marketing Manager",
-    company: "Growth Hacking",
-    location: "Austin, TX",
-    type: "Full-time",
-    level: "Mid-Level",
-    salary: "$85k - $110k",
-    posted: "3 days ago",
-    logo: "GH",
-  },
-  {
-    id: 5,
-    title: "Junior Data Analyst",
-    company: "DataWise",
-    location: "Chicago, IL",
-    type: "Part-time",
-    level: "Junior",
-    salary: "$40k - $60k",
-    posted: "Just now",
-    logo: "DW",
-  },
-  {
-    id: 6,
-    title: "DevOps Engineer",
-    company: "CloudSystems",
-    location: "Remote",
-    type: "Full-time",
-    level: "Senior",
-    salary: "$130k - $170k",
-    posted: "4 days ago",
-    logo: "CS",
-  },
-];
+import { getAllJobs } from "../../../services/jobService";
+import { applyToJob, getMyApplications } from "../../../services/applicationService";
+import { getMyJobSeekerProfile } from "../../../services/jobSeekerService";
 
+/* ─── helpers ─── */
+const initials = (name = "") => {
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  const first = parts[0]?.[0] || "";
+  const second = parts.length > 1 ? parts[parts.length - 1]?.[0] : parts[0]?.[1] || "";
+  return (first + second).toUpperCase() || "CO";
+};
+
+const formatSalary = (min, max) => {
+  const hasMin = typeof min === "number" && !Number.isNaN(min);
+  const hasMax = typeof max === "number" && !Number.isNaN(max);
+  const fmt = (n) => {
+    try {
+      return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+    } catch {
+      return `$${n}`;
+    }
+  };
+  if (hasMin && hasMax) return `${fmt(min)} – ${fmt(max)}`;
+  if (hasMin) return `${fmt(min)}+`;
+  if (hasMax) return `Up to ${fmt(max)}`;
+  return "";
+};
+
+const timeAgo = (iso) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const diff = Date.now() - d.getTime();
+  if (Number.isNaN(diff)) return "";
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+};
+
+const shortText = (text = "", max = 140) => {
+  const t = String(text || "").trim();
+  if (!t) return "";
+  if (t.length <= max) return t;
+  return `${t.slice(0, max).trim()}…`;
+};
+
+/* ─── ApplyModal ─── */
+const ApplyModal = ({ job, existingResume, onClose, onSuccess }) => {
+  const queryClient = useQueryClient();
+
+  const [resumeChoice, setResumeChoice] = useState(existingResume ? "existing" : "new");
+  const [newResumeFile, setNewResumeFile] = useState(null);
+  const [coverLetter, setCoverLetter] = useState("");
+  const [validationError, setValidationError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+  const fileInputRef = useRef(null);
+
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
+  const applyMutation = useMutation({
+    mutationFn: (payload) => applyToJob(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["myApplications"]);
+      setSuccessMsg("Application submitted successfully!");
+      setTimeout(() => {
+        setSuccessMsg("");
+        onSuccess();
+        onClose();
+      }, 1800);
+    },
+    onError: (err) => {
+      const msg = err?.response?.data?.message || err?.message || "Failed to submit. Please try again.";
+      setValidationError(msg);
+    },
+  });
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setNewResumeFile(file);
+      setValidationError("");
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setValidationError("");
+
+    // Validate resume
+    if (resumeChoice === "new" && !newResumeFile) {
+      setValidationError("Please upload your resume to continue.");
+      return;
+    }
+    if (resumeChoice === "existing" && !existingResume) {
+      setValidationError("No resume found on your profile. Please upload a new one.");
+      return;
+    }
+
+    applyMutation.mutate({
+      jobId: job._id,
+      resumeFile: resumeChoice === "new" ? newResumeFile : null,
+      existingResumeUrl: resumeChoice === "existing" ? existingResume : null,
+      coverLetter,
+    });
+  };
+
+  const isPending = applyMutation.isPending;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        className="modal-overlay"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+      >
+        <motion.div
+          className="apply-modal"
+          initial={{ opacity: 0, y: 40, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 40, scale: 0.97 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="modal-header">
+            <div className="modal-job-info">
+              <div className="modal-company-logo">{initials(job?.company)}</div>
+              <div>
+                <h2 className="modal-job-title">{job?.jobTitle || "Job Role"}</h2>
+                <p className="modal-company-name">
+                  <Building2 size={13} style={{ marginRight: 4 }} />
+                  {job?.company || "Company"}
+                  {job?.location && (
+                    <>
+                      <span className="modal-dot">·</span>
+                      <MapPin size={13} style={{ marginRight: 2 }} />
+                      {job.location}
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+            <button className="modal-close-btn" onClick={onClose} aria-label="Close modal">
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Success overlay */}
+          {successMsg && (
+            <motion.div
+              className="modal-success"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+            >
+              <CheckCircle size={48} className="success-icon" />
+              <p>{successMsg}</p>
+            </motion.div>
+          )}
+
+          {/* Form */}
+          {!successMsg && (
+            <form onSubmit={handleSubmit} className="modal-form" noValidate>
+
+              {/* SECTION: Resume */}
+              <section className="modal-section">
+                <h3 className="modal-section-title">
+                  <FileText size={16} />
+                  Resume
+                </h3>
+
+                <div className="resume-choice-group">
+                  {/* Existing resume option */}
+                  {existingResume && (
+                    <label
+                      className={`resume-choice-card ${resumeChoice === "existing" ? "selected" : ""}`}
+                    >
+                      <input
+                        type="radio"
+                        name="resumeChoice"
+                        value="existing"
+                        checked={resumeChoice === "existing"}
+                        onChange={() => { setResumeChoice("existing"); setValidationError(""); }}
+                      />
+                      <div className="resume-choice-inner">
+                        <div className="rc-icon rc-icon-existing">
+                          <FileText size={20} />
+                        </div>
+                        <div>
+                          <p className="rc-label">Use profile resume</p>
+                          <a
+                            href={existingResume}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rc-link"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            View uploaded resume ↗
+                          </a>
+                        </div>
+                      </div>
+                    </label>
+                  )}
+
+                  {/* Upload new option */}
+                  <label
+                    className={`resume-choice-card ${resumeChoice === "new" ? "selected" : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name="resumeChoice"
+                      value="new"
+                      checked={resumeChoice === "new"}
+                      onChange={() => { setResumeChoice("new"); setValidationError(""); }}
+                    />
+                    <div className="resume-choice-inner">
+                      <div className="rc-icon rc-icon-new">
+                        <Upload size={20} />
+                      </div>
+                      <div>
+                        <p className="rc-label">Upload new resume</p>
+                        <p className="rc-hint">PDF or Word · max 5 MB</p>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
+                {/* File input – shown when "new" is chosen */}
+                {resumeChoice === "new" && (
+                  <motion.div
+                    className="file-drop-zone"
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      style={{ display: "none" }}
+                      onChange={handleFileChange}
+                    />
+                    {newResumeFile ? (
+                      <div className="file-chosen">
+                        <FileText size={18} />
+                        <span>{newResumeFile.name}</span>
+                        <button
+                          type="button"
+                          className="file-remove-btn"
+                          onClick={(e) => { e.stopPropagation(); setNewResumeFile(null); }}
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="file-placeholder">
+                        <Upload size={22} className="file-upload-icon" />
+                        <p>Click to browse or drag & drop</p>
+                        <p className="rc-hint">PDF, DOC, DOCX</p>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </section>
+
+              {/* SECTION: Cover Letter */}
+              <section className="modal-section">
+                <h3 className="modal-section-title">
+                  Cover Letter
+                  <span className="optional-badge">Optional</span>
+                </h3>
+                <textarea
+                  className="modal-textarea"
+                  rows={4}
+                  placeholder="Tell the recruiter why you're a great fit for this role…"
+                  value={coverLetter}
+                  onChange={(e) => setCoverLetter(e.target.value)}
+                  maxLength={1500}
+                />
+                <p className="char-count">{coverLetter.length} / 1500</p>
+              </section>
+
+              {/* Validation error */}
+              {validationError && (
+                <div className="modal-error">
+                  <AlertCircle size={15} />
+                  {validationError}
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div className="modal-footer">
+                <button type="button" className="modal-cancel-btn" onClick={onClose} disabled={isPending}>
+                  Cancel
+                </button>
+                <button type="submit" className="modal-submit-btn" disabled={isPending}>
+                  {isPending ? (
+                    <>
+                      <Loader2 size={16} className="spinning" />
+                      Submitting…
+                    </>
+                  ) : (
+                    "Submit Application"
+                  )}
+                </button>
+              </div>
+            </form>
+          )}
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
+/* ─── Main Component ─── */
 const JobSearch = () => {
+  const queryClient = useQueryClient();
   const [filters, setFilters] = useState({
     keyword: "",
     location: "",
     type: "All Types",
-    level: "All Levels",
   });
+
+  // Which job's apply modal is open (job object or null)
+  const [applyModalJob, setApplyModalJob] = useState(null);
+  const [toast, setToast] = useState({ type: "", message: "" });
+
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast({ type: "", message: "" }), 3000);
+  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  const filteredJobs = MOCK_JOBS.filter((job) => {
-    const matchKeyword =
-      job.title.toLowerCase().includes(filters.keyword.toLowerCase()) ||
-      job.company.toLowerCase().includes(filters.keyword.toLowerCase());
-    const matchLocation = job.location
-      .toLowerCase()
-      .includes(filters.location.toLowerCase());
-    const matchType = filters.type === "All Types" || job.type === filters.type;
-    const matchLevel =
-      filters.level === "All Levels" || job.level === filters.level;
+  const jobsQueryParams = useMemo(() => {
+    const params = {};
+    if (filters.keyword?.trim()) params.search = filters.keyword.trim();
+    if (filters.location?.trim()) params.location = filters.location.trim();
+    if (filters.type && filters.type !== "All Types") params.jobType = filters.type;
+    params.limit = 50;
+    params.page = 1;
+    return params;
+  }, [filters.keyword, filters.location, filters.type]);
 
-    return matchKeyword && matchLocation && matchType && matchLevel;
+  const {
+    data: jobs = [],
+    isLoading: jobsLoading,
+    isError: jobsError,
+    error: jobsErrObj,
+  } = useQuery({
+    queryKey: ["jobs", jobsQueryParams],
+    queryFn: () => getAllJobs(jobsQueryParams),
   });
+
+  const {
+    data: myAppsData,
+    isLoading: appsLoading,
+    isError: appsError,
+    error: appsErrObj,
+  } = useQuery({
+    queryKey: ["myApplications"],
+    queryFn: getMyApplications,
+  });
+
+  // Fetch seeker profile to get stored resume
+  const { data: seekerProfileData } = useQuery({
+    queryKey: ["myJobSeekerProfile"],
+    queryFn: getMyJobSeekerProfile,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const existingResume = seekerProfileData?.jobSeeker?.resumeUrl || seekerProfileData?.resumeUrl || "";
+
+  const appliedJobIds = useMemo(() => {
+    const apps = myAppsData?.applications || [];
+    const set = new Set();
+    apps.forEach((a) => {
+      const jobId = a?.job?._id || a?.job;
+      if (jobId) set.add(String(jobId));
+    });
+    return set;
+  }, [myAppsData]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
+    visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
   };
 
   const itemVariants = {
@@ -190,31 +487,40 @@ const JobSearch = () => {
                 <option>Part-time</option>
                 <option>Contract</option>
                 <option>Remote</option>
-              </select>
-
-              <select
-                name="level"
-                className="filter-select"
-                value={filters.level}
-                onChange={handleFilterChange}
-              >
-                <option>All Levels</option>
-                <option>Junior</option>
-                <option>Mid-Level</option>
-                <option>Senior</option>
-                <option>Lead</option>
+                <option>Hybrid</option>
+                <option>Internship</option>
               </select>
             </div>
 
-            <button className="search-button">Search Jobs</button>
+            <button
+              className="search-button"
+              type="button"
+              onClick={() => queryClient.invalidateQueries(["jobs"])}
+            >
+              Search Jobs
+            </button>
           </motion.div>
         </div>
       </header>
 
       {/* Job Listings */}
       <section className="jobs-container">
+        {toast.message && (
+          <div className={`jobsearch-toast ${toast.type === "error" ? "jobsearch-toast-error" : "jobsearch-toast-success"}`}>
+            {toast.message}
+          </div>
+        )}
+
+        {(jobsError || appsError) && (
+          <div className="jobsearch-error">
+            {jobsErrObj?.response?.data?.message ||
+              appsErrObj?.response?.data?.message ||
+              "Something went wrong while loading jobs."}
+          </div>
+        )}
+
         <div className="results-count">
-          Showing <span>{filteredJobs.length}</span> jobs based on your filters
+          Showing <span>{jobs.length}</span> jobs based on your filters
         </div>
 
         <motion.div
@@ -223,50 +529,101 @@ const JobSearch = () => {
           initial="hidden"
           animate="visible"
         >
-          {filteredJobs.map((job) => (
-            <motion.div
-              key={job.id}
-              className="job-card"
-              variants={itemVariants}
-              whileHover={{ y: -5 }}
-            >
-              <div className="card-header">
-                <div className="company-logo">{job.logo}</div>
-                <span className="posted-time">
-                  <Clock
-                    size={12}
-                    style={{ marginRight: "4px", verticalAlign: "text-top" }}
-                  />
-                  {job.posted}
-                </span>
-              </div>
-
-              <div className="card-body">
-                <h3 className="job-title">{job.title}</h3>
-                <div className="company-name">
-                  <Building2 size={14} />
-                  {job.company}
+          {/* Skeleton loading */}
+          {(jobsLoading || appsLoading) &&
+            Array.from({ length: 6 }).map((_, idx) => (
+              <div key={`sk-${idx}`} className="job-card job-card-skeleton">
+                <div className="card-header">
+                  <div className="company-logo skeleton-box" />
+                  <span className="posted-time skeleton-pill" />
                 </div>
-
-                <div className="job-tags">
-                  <span className="tag type">{job.type}</span>
-                  <span className="tag level">{job.level}</span>
-                  <span className="tag salary">{job.salary}</span>
+                <div className="card-body">
+                  <div className="skeleton-line skeleton-line-lg" />
+                  <div className="skeleton-line" />
+                  <div className="skeleton-tags">
+                    <span className="skeleton-pill" />
+                    <span className="skeleton-pill" />
+                  </div>
+                  <div className="skeleton-line skeleton-line-md" />
+                </div>
+                <div className="card-footer">
+                  <div className="skeleton-line skeleton-line-sm" />
+                  <div className="skeleton-btn" />
                 </div>
               </div>
+            ))}
 
-              <div className="card-footer">
-                <div className="location">
-                  <MapPin size={14} />
-                  {job.location}
-                </div>
-                <button className="apply-btn">Apply Now</button>
-              </div>
-            </motion.div>
-          ))}
+          {/* Job cards */}
+          {!jobsLoading &&
+            !appsLoading &&
+            jobs.map((job) => {
+              const jobId = String(job?._id || "");
+              const isApplied = appliedJobIds.has(jobId);
+              const salaryText = formatSalary(job?.salaryMin, job?.salaryMax);
+              const posted = timeAgo(job?.createdAt);
+              const desc = shortText(job?.description, 160);
+
+              return (
+                <motion.div
+                  key={jobId}
+                  className="job-card"
+                  variants={itemVariants}
+                  whileHover={{ y: -5 }}
+                >
+                  <div className="card-header">
+                    <div className="company-logo">{initials(job?.company)}</div>
+                    <span className="posted-time">
+                      <Clock size={12} style={{ marginRight: "4px", verticalAlign: "text-top" }} />
+                      {posted || "Recently"}
+                    </span>
+                  </div>
+
+                  <div className="card-body">
+                    <h3 className="job-title">{job?.jobTitle || "Untitled role"}</h3>
+                    <div className="company-name">
+                      <Building2 size={14} />
+                      {job?.company || "Company"}
+                    </div>
+
+                    <div className="job-tags">
+                      {job?.jobType && (
+                        <span className="tag type">
+                          <Briefcase size={14} style={{ marginRight: "6px" }} />
+                          {job.jobType}
+                        </span>
+                      )}
+                      {salaryText && (
+                        <span className="tag salary">
+                          <DollarSign size={14} style={{ marginRight: "6px" }} />
+                          {salaryText}
+                        </span>
+                      )}
+                    </div>
+
+                    {desc ? <p className="job-desc">{desc}</p> : null}
+                  </div>
+
+                  <div className="card-footer">
+                    <div className="location">
+                      <MapPin size={14} />
+                      {job?.location || "Location not specified"}
+                    </div>
+                    <button
+                      className={`apply-btn ${isApplied ? "apply-btn-applied" : ""}`}
+                      disabled={isApplied}
+                      onClick={() => {
+                        if (!isApplied) setApplyModalJob(job);
+                      }}
+                    >
+                      {isApplied ? "✓ Applied" : "Apply Now"}
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
         </motion.div>
 
-        {filteredJobs.length === 0 && (
+        {!jobsLoading && !jobsError && jobs.length === 0 && (
           <div
             className="no-results"
             style={{ textAlign: "center", padding: "3rem", color: "#64748b" }}
@@ -276,6 +633,16 @@ const JobSearch = () => {
           </div>
         )}
       </section>
+
+      {/* Apply Modal */}
+      {applyModalJob && (
+        <ApplyModal
+          job={applyModalJob}
+          existingResume={existingResume}
+          onClose={() => setApplyModalJob(null)}
+          onSuccess={() => showToast("success", "Application submitted successfully!")}
+        />
+      )}
     </div>
   );
 };

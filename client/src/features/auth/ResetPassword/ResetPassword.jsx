@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom"; // ✅ ADD useLocation
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -8,9 +8,15 @@ import { Eye, EyeOff, Lock, ArrowLeft } from "lucide-react";
 // import files
 import "./ResetPassword.css";
 import { Image } from "../../../utils/image_paths.js";
+import authService from "../../../services/authService.js"; // ✅ ADD
 
 const ResetPassword = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ get email
+  const [loading, setLoading] = useState(false);
+
+  const email = location.state?.email; // ✅ get email
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -47,17 +53,45 @@ const ResetPassword = () => {
           </motion.div>
         ),
         {
-          duration: 2500 + index * 150, // staggered duration prevents overlapping glitch
+          duration: 2500 + index * 150,
           position: "top-right",
         }
       );
     });
   };
 
-  const onSubmit = (data) => {
-    console.log("Reset password submitted:", data);
-    // Add password update logic here
-    navigate("/login");
+  // ✅ UPDATED SUBMIT FUNCTION
+  const onSubmit = async (data) => {
+    try {
+      if (!email) {
+        toast.error("Session expired. Please try again.");
+        navigate("/forgot-password");
+        return;
+      }
+
+      setLoading(true);
+
+      const res = await authService.resetPassword({
+        email,
+        newPassword: data.password,
+      });
+
+      if (res.success) {
+        toast.success(res.message || "Password updated successfully");
+
+        // 👉 redirect to login
+        navigate("/login");
+      } else {
+        toast.error(res.message || "Failed to reset password");
+      }
+
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Server error"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -85,7 +119,10 @@ const ResetPassword = () => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit, showErrors)} className="reset-form">
+        <form
+          onSubmit={handleSubmit(onSubmit, showErrors)}
+          className="reset-form"
+        >
           <div className="form-group">
             <label htmlFor="password">New Password</label>
             <div className="input-wrapper">
@@ -129,9 +166,15 @@ const ResetPassword = () => {
               <button
                 type="button"
                 className="toggle-password"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                onClick={() =>
+                  setShowConfirmPassword(!showConfirmPassword)
+                }
               >
-                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showConfirmPassword ? (
+                  <EyeOff size={16} />
+                ) : (
+                  <Eye size={16} />
+                )}
               </button>
             </div>
           </div>
@@ -139,10 +182,11 @@ const ResetPassword = () => {
           <motion.button
             type="submit"
             className="btn-submit"
+            disabled={loading}
             whileHover={{ scale: 1.02, y: -1 }}
             whileTap={{ scale: 0.98 }}
           >
-            Reset Password
+            {loading ? "Updating..." : "Reset Password"}
           </motion.button>
 
           <div className="form-footer-links">

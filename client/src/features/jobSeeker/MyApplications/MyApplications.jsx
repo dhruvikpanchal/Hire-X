@@ -1,243 +1,277 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import "./MyApplications.css";
+import ApplicationCard from "./ApplicationCard";
+import { getMyApplicationsV2 } from "../../../services/applicationService";
 
-const applications = [
-  {
-    id: 1,
-    jobTitle: "Senior Frontend Developer",
-    company: "Nexora Technologies",
-    location: "San Francisco, CA",
-    dateApplied: "2025-03-01",
-    status: "Shortlisted",
-    logo: "NT",
-  },
-  {
-    id: 2,
-    jobTitle: "UI/UX Designer",
-    company: "Pixel Forge Studio",
-    location: "Remote",
-    dateApplied: "2025-02-24",
-    status: "Viewed",
-    logo: "PF",
-  },
-  {
-    id: 3,
-    jobTitle: "React Developer",
-    company: "CloudBridge Inc.",
-    location: "Austin, TX",
-    dateApplied: "2025-02-18",
-    status: "Applied",
-    logo: "CB",
-  },
-  {
-    id: 4,
-    jobTitle: "Full Stack Engineer",
-    company: "Arctix Systems",
-    location: "New York, NY",
-    dateApplied: "2025-02-10",
-    status: "Shortlisted",
-    logo: "AS",
-  },
-  {
-    id: 5,
-    jobTitle: "Product Designer",
-    company: "Luminary Labs",
-    location: "Boston, MA",
-    dateApplied: "2025-01-30",
-    status: "Applied",
-    logo: "LL",
-  },
-  {
-    id: 6,
-    jobTitle: "JavaScript Engineer",
-    company: "Wavefront Digital",
-    location: "Chicago, IL",
-    dateApplied: "2025-01-22",
-    status: "Viewed",
-    logo: "WD",
-  },
+const STATUS_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "applied", label: "Applied" },
+  { value: "under_review", label: "Under Review" },
+  { value: "shortlisted", label: "Shortlisted" },
+  { value: "rejected", label: "Rejected" },
 ];
 
-const STATUS_FILTERS = ["All", "Applied", "Viewed", "Shortlisted"];
-
-const statusMeta = {
-  Applied: { label: "Applied", className: "status-applied" },
-  Viewed: { label: "Viewed", className: "status-viewed" },
-  Shortlisted: { label: "Shortlisted", className: "status-shortlisted" },
+const normalizeStatus = (raw) => {
+  const s = String(raw || "").toLowerCase();
+  if (s === "shortlisted" || s === "interview" || s === "offered") return { key: "shortlisted", label: "Shortlisted" };
+  if (s === "rejected") return { key: "rejected", label: "Rejected" };
+  if (s === "viewed" || s === "under_review") return { key: "under_review", label: "Under Review" };
+  return { key: "applied", label: "Applied" };
 };
 
-function formatDate(dateStr) {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
+const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+const serverBase = apiBase.replace(/\/api\/?$/, "");
+const toPublicUrl = (p) => {
+  if (!p) return "";
+  if (/^https?:\/\//i.test(p)) return p;
+  return `${serverBase}/${String(p).replace(/^\/+/, "")}`;
+};
+
+const initials = (name = "") => {
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  const first = parts[0]?.[0] || "";
+  const second = parts.length > 1 ? parts[parts.length - 1]?.[0] : parts[0]?.[1] || "";
+  return (first + second).toUpperCase() || "CO";
+};
+
+const formatDate = (iso) => {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  } catch {
+    return "";
+  }
+};
 
 export default function MyApplications() {
-  const [activeFilter, setActiveFilter] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("all");
+  const [sort, setSort] = useState("latest"); // latest | oldest
+  const [toast, setToast] = useState({ type: "", message: "" });
 
-  const filtered = applications.filter((app) => {
-    const matchesStatus =
-      activeFilter === "All" || app.status === activeFilter;
-    const query = searchQuery.toLowerCase();
-    const matchesSearch =
-      app.jobTitle.toLowerCase().includes(query) ||
-      app.company.toLowerCase().includes(query) ||
-      app.location.toLowerCase().includes(query);
-    return matchesStatus && matchesSearch;
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["myApplicationsV2"],
+    queryFn: getMyApplicationsV2,
   });
 
-  const counts = STATUS_FILTERS.reduce((acc, f) => {
-    acc[f] =
-      f === "All"
-        ? applications.length
-        : applications.filter((a) => a.status === f).length;
-    return acc;
-  }, {});
+  const raw = data?.applications || [];
+
+  const apps = useMemo(() => {
+    return raw.map((a) => {
+      const job = a?.job || {};
+      const st = normalizeStatus(a?.status);
+      return {
+        id: a?._id,
+        jobId: job?._id,
+        jobTitle: job?.jobTitle || "Job",
+        companyName: job?.company || "Company",
+        location: job?.location || "",
+        uiStatusKey: st.key,
+        uiStatusLabel: st.label,
+        appliedOnLabel: formatDate(a?.createdAt),
+        resumeUrl: toPublicUrl(a?.resumeUrl?.url),
+        message: a?.coverLetter || "",
+        createdAt: a?.createdAt,
+      };
+    });
+  }, [raw]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    let list = apps;
+    if (q) {
+      list = list.filter(
+        (a) =>
+          a.jobTitle.toLowerCase().includes(q) ||
+          a.companyName.toLowerCase().includes(q) ||
+          a.location.toLowerCase().includes(q),
+      );
+    }
+    if (status !== "all") {
+      list = list.filter((a) => a.uiStatusKey === status);
+    }
+    list = [...list].sort((a, b) => {
+      const da = new Date(a.createdAt).getTime();
+      const db = new Date(b.createdAt).getTime();
+      return sort === "oldest" ? da - db : db - da;
+    });
+    return list;
+  }, [apps, query, status, sort]);
+
+  const counts = useMemo(() => {
+    const c = { all: apps.length, applied: 0, under_review: 0, shortlisted: 0, rejected: 0 };
+    apps.forEach((a) => { c[a.uiStatusKey] += 1; });
+    return c;
+  }, [apps]);
+
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(() => setToast({ type: "", message: "" }), 2500);
+  };
+
+  if (isError && toast.message === "") {
+    const msg = error?.response?.data?.message || "Failed to load applications.";
+    // avoid repeated setState loops
+    setTimeout(() => showToast("error", msg), 0);
+  }
 
   return (
-    <div className="applications-page">
-      {/* Header */}
-      <header className="applications-header">
-        <div className="applications-header-inner">
-          <div className="applications-title-group">
-            <div className="applications-icon-wrap">
+    <motion.div
+      className="ma-page"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+    >
+      <header className="ma-hero">
+        <div className="ma-hero__inner">
+          <div className="ma-hero__title">
+            <div className="ma-hero__icon" aria-hidden>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
                 <line x1="16" y1="13" x2="8" y2="13" />
                 <line x1="16" y1="17" x2="8" y2="17" />
-                <polyline points="10 9 9 9 8 9" />
               </svg>
             </div>
             <div>
-              <h1 className="applications-title">My Applications</h1>
-              <p className="applications-subtitle">Track and manage your job applications</p>
+              <h1 className="ma-hero__h1">My Applications</h1>
+              <p className="ma-hero__sub">Track your applications and follow up faster.</p>
             </div>
           </div>
-          <div className="applications-stats-row">
-            <div className="applications-stat">
-              <span className="stat-number">{applications.length}</span>
-              <span className="applications-stat-label">Total</span>
+
+          <div className="ma-stats">
+            <div className="ma-stat">
+              <span className="ma-stat__num">{counts.all}</span>
+              <span className="ma-stat__lbl">Total</span>
             </div>
-            <div className="applications-stat-divider" />
-            <div className="applications-stat">
-              <span className="stat-number stat-shortlisted">{counts["Shortlisted"]}</span>
-              <span className="applications-stat-label">Shortlisted</span>
+            <div className="ma-stat">
+              <span className="ma-stat__num ma-stat__num--yellow">{counts.under_review}</span>
+              <span className="ma-stat__lbl">Under review</span>
             </div>
-            <div className="applications-stat-divider" />
-            <div className="applications-stat">
-              <span className="stat-number stat-viewed">{counts["Viewed"]}</span>
-              <span className="applications-stat-label">Viewed</span>
+            <div className="ma-stat">
+              <span className="ma-stat__num ma-stat__num--green">{counts.shortlisted}</span>
+              <span className="ma-stat__lbl">Shortlisted</span>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Controls */}
-      <div className="applications-controls">
-        <div className="applications-search-wrap">
-          <svg className="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            type="text"
-            className="applications-search"
-            placeholder="Search by title, company, or location…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="applications-filters">
-          {STATUS_FILTERS.map((filter) => (
-            <button
-              key={filter}
-              className={`filter-btn ${activeFilter === filter ? "filter-btn-active" : ""}`}
-              onClick={() => setActiveFilter(filter)}
-            >
-              {filter}
-              <span className="filter-count">{counts[filter]}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Cards */}
-      <main className="applications-container">
-        {filtered.length === 0 ? (
-          <div className="applications-empty">
-            <div className="empty-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-            </div>
-            <h3 className="empty-title">No applications found</h3>
-            <p className="empty-message">
-              {searchQuery
-                ? `No results for "${searchQuery}". Try a different search.`
-                : `You haven't applied to any ${activeFilter !== "All" ? activeFilter.toLowerCase() : ""} jobs yet.`}
-            </p>
-          </div>
-        ) : (
-          <div className="applications-grid">
-            {filtered.map((app, index) => (
-              <div
-                className="application-card"
-                key={app.id}
-                style={{ animationDelay: `${index * 70}ms` }}
-              >
-                <div className="application-card-top">
-                  <div className="application-logo" aria-hidden="true">
-                    {app.logo}
-                  </div>
-                  <div className="application-main-info">
-                    <h2 className="application-job-title">{app.jobTitle}</h2>
-                    <p className="application-company">{app.company}</p>
-                  </div>
-                  <span className={`application-status ${statusMeta[app.status].className}`}>
-                    {statusMeta[app.status].label}
-                  </span>
-                </div>
-
-                <div className="application-card-divider" />
-
-                <div className="application-card-bottom">
-                  <div className="application-meta">
-                    <span className="application-meta-item">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                        <circle cx="12" cy="10" r="3" />
-                      </svg>
-                      {app.location}
-                    </span>
-                    <span className="application-meta-item">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                        <line x1="16" y1="2" x2="16" y2="6" />
-                        <line x1="8" y1="2" x2="8" y2="6" />
-                        <line x1="3" y1="10" x2="21" y2="10" />
-                      </svg>
-                      Applied {formatDate(app.dateApplied)}
-                    </span>
-                  </div>
-                  <button className="application-view-btn" aria-label={`View details for ${app.jobTitle}`}>
-                    View Details
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                      <polyline points="12 5 19 12 12 19" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            ))}
+      <div className="ma-shell">
+        {toast.message && (
+          <div className={`ma-toast ${toast.type === "error" ? "ma-toast--error" : "ma-toast--success"}`} role="status">
+            {toast.message}
           </div>
         )}
-      </main>
-    </div>
+
+        <div className="ma-controls">
+          <div className="ma-search">
+            <span className="ma-search__icon" aria-hidden>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </span>
+            <input
+              className="ma-search__input"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search job title, company, location…"
+            />
+          </div>
+
+          <div className="ma-selects">
+            <label className="ma-select">
+              <span className="ma-select__lbl">Status</span>
+              <select className="ma-select__input" value={status} onChange={(e) => setStatus(e.target.value)}>
+                {STATUS_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label} ({counts[o.value] ?? counts.all})
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="ma-select">
+              <span className="ma-select__lbl">Sort</span>
+              <select className="ma-select__input" value={sort} onChange={(e) => setSort(e.target.value)}>
+                <option value="latest">Latest</option>
+                <option value="oldest">Oldest</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <main className="ma-list">
+          {isLoading && (
+            <div className="ma-grid">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div className="ma-skel" key={`sk-${i}`}>
+                  <div className="ma-skel__row">
+                    <div className="ma-skel__logo" />
+                    <div className="ma-skel__main">
+                      <div className="ma-skel__line ma-skel__line--lg" />
+                      <div className="ma-skel__line ma-skel__line--md" />
+                    </div>
+                    <div className="ma-skel__pill" />
+                  </div>
+                  <div className="ma-skel__line ma-skel__line--sm" />
+                  <div className="ma-skel__line ma-skel__line--md" />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!isLoading && filtered.length === 0 && (
+            <div className="ma-empty">
+              <div className="ma-empty__icon" aria-hidden>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </div>
+              <h3 className="ma-empty__title">No applications yet</h3>
+              <p className="ma-empty__desc">
+                {query.trim()
+                  ? `No results for "${query}". Try a different search.`
+                  : "Start applying to jobs to see them here."}
+              </p>
+              <button className="ma-btn ma-btn--primary" onClick={() => navigate("/jobSeeker/jobSearch")}>
+                Browse Jobs
+              </button>
+            </div>
+          )}
+
+          {!isLoading && filtered.length > 0 && (
+            <motion.div
+              className="ma-grid"
+              initial="hidden"
+              animate="show"
+              variants={{
+                hidden: { opacity: 0 },
+                show: { opacity: 1, transition: { staggerChildren: 0.06 } },
+              }}
+            >
+              {filtered.map((a) => (
+                <motion.div
+                  key={a.id}
+                  variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
+                >
+                  <ApplicationCard
+                    application={a}
+                    badge={initials(a.companyName)}
+                    onOpenJob={() => a.jobId && navigate(`/jobs/${a.jobId}`)}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </main>
+      </div>
+    </motion.div>
   );
 }

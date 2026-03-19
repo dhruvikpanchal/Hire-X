@@ -37,7 +37,27 @@ const jobSeekerSchema = new mongoose.Schema(
         resumeUrl: {
             type: String,
             default: ""
-        }
+        },
+
+        experience: [
+            {
+                jobRole: { type: String, default: "" },
+                companyName: { type: String, default: "" },
+                startDate: { type: String, default: "" },
+                endDate: { type: String, default: "" },
+                currentlyWorking: { type: Boolean, default: false },
+                description: { type: String, default: "" }
+            }
+        ],
+
+        education: [
+            {
+                degree: { type: String, default: "" },
+                institution: { type: String, default: "" },
+                startYear: { type: String, default: "" },
+                endYear: { type: String, default: "" }
+            }
+        ]
 
     },
     {
