@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import {
@@ -35,10 +34,7 @@ const ForgotPassword = () => {
     messages.forEach((msg, index) => {
       toast.custom(
         (t) => (
-          <motion.div
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: t.visible ? 1 : 0, x: t.visible ? 0 : 200 }}
-            transition={{ duration: 0.1 }}
+          <div
             style={{
               background: "#ef4444",
               color: "#fff",
@@ -49,7 +45,7 @@ const ForgotPassword = () => {
             }}
           >
             {msg}
-          </motion.div>
+          </div>
         ),
         {
           duration: 2500 + index * 150,
@@ -94,11 +90,8 @@ const ForgotPassword = () => {
   return (
     <div className="forgot-password-page">
       {/* Left Section - Form */}
-      <motion.div
+      <div
         className="forgot-left"
-        initial={{ opacity: 0, x: -30 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5 }}
       >
         <div className="forgot-form-container">
           {/* Logo */}
@@ -142,15 +135,13 @@ const ForgotPassword = () => {
               </div>
             </div>
 
-            <motion.button
+            <button
               type="submit"
               className="btn-submit"
               disabled={loading}
-              whileHover={{ scale: 1.02, y: -1 }}
-              whileTap={{ scale: 0.98 }}
             >
               {loading ? "Sending OTP..." : "Send OTP"}
-            </motion.button>
+            </button>
 
             {/* Links */}
             <div className="form-footer-links">
@@ -163,7 +154,7 @@ const ForgotPassword = () => {
             </div>
           </form>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

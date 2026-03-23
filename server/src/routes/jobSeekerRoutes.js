@@ -14,7 +14,10 @@ import {
     addEducation,
     updateEducation,
     deleteEducation,
-    getJobSeekerDashboard
+    getJobSeekerDashboard,
+    getMySavedJobs,
+    saveJobForSeeker,
+    unsaveJobForSeeker,
 } from "../controllers/jobSeeker.Controller.js";
 
 import authMiddleware from "../middlewares/authMiddleware.js";
@@ -54,6 +57,24 @@ router.get(
     getJobSeekerDashboard
 );
 
+router.get(
+    "/me/saved-jobs",
+    authMiddleware,
+    roleMiddleware("jobseeker"),
+    getMySavedJobs
+);
+router.post(
+    "/me/saved-jobs",
+    authMiddleware,
+    roleMiddleware("jobseeker"),
+    saveJobForSeeker
+);
+router.delete(
+    "/me/saved-jobs/:jobId",
+    authMiddleware,
+    roleMiddleware("jobseeker"),
+    unsaveJobForSeeker
+);
 
 // 🔥 UPDATE PROFILE (with avatar support)
 router.put(

@@ -4,11 +4,8 @@ import {
   Statistics,
   PopularVacancies,
   HowItWorks,
-  PopularCategories,
   FeaturedJobs,
-  TopCompanies,
   Testimonials,
-  CallToAction,
 } from "./components/HomeSections";
 
 const Home = () => {
@@ -18,11 +15,8 @@ const Home = () => {
       <Statistics />
       <PopularVacancies />
       <HowItWorks />
-      <PopularCategories />
       <FeaturedJobs />
-      <TopCompanies />
       <Testimonials />
-      <CallToAction />
     </>
   );
 };

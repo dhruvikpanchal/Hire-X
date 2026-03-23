@@ -1,0 +1,115 @@
+Project Scan Report
+Date: 2026-03-22
+
+Status Summary
+- Lint warnings: fixed to 0 (client).
+- Build: passing (client production build).
+- Framer Motion: removed from source and dependency list.
+
+Entry 1
+- User Type: All
+- File Name: client/src/features/auth/Register/Register.jsx
+- Warning or Missing Feature: react-hooks/incompatible-library warning from react-hook-form watch() in confirm password validation.
+- Which code was updated / improved: Removed watch() usage from field validator, moved password mismatch validation to submit handler, and kept user feedback via toast.
+
+Entry 2
+- User Type: Job Seeker
+- File Name: client/src/features/jobSeeker/Candidates/Candidates.jsx
+- Warning or Missing Feature: react-hooks/exhaustive-deps warnings caused by unstable array defaults.
+- Which code was updated / improved: Wrapped derived arrays (jobSeekers, friends, pendingIncoming, pendingOutgoing) in useMemo to keep stable references and remove warnings.
+
+Entry 3
+- User Type: Job Seeker
+- File Name: client/src/features/jobSeeker/Companies/Companies.jsx
+- Warning or Missing Feature: react-hooks/exhaustive-deps warnings from unstable companies list.
+- Which code was updated / improved: Memoized companies list from query response before downstream useMemo filters.
+
+Entry 4
+- User Type: Job Seeker
+- File Name: client/src/features/jobSeeker/EditProfile/EditProfile.jsx
+- Warning or Missing Feature: missing dependency warning in useEffect.
+- Which code was updated / improved: Added avatarFile dependency to sync effect dependencies correctly.
+
+Entry 5
+- User Type: Job Seeker
+- File Name: client/src/features/jobSeeker/MyApplications/MyApplications.jsx
+- Warning or Missing Feature: exhaustive-deps warnings from non-memoized raw applications list.
+- Which code was updated / improved: Memoized raw applications list before derived computations.
+
+Entry 6
+- User Type: Job Seeker
+- File Name: client/src/features/jobSeeker/SavedJobs/SavedJobs.jsx
+- Warning or Missing Feature: exhaustive-deps warning from unstable savedRows value.
+- Which code was updated / improved: Memoized savedRows from API response.
+
+Entry 7
+- User Type: Job Seeker
+- File Name: client/src/features/jobSeeker/jobSeeker_dashboard/jobSeeker_dashboard.jsx
+- Warning or Missing Feature: exhaustive-deps warning from inline stats fallback object.
+- Which code was updated / improved: Memoized stats fallback object with useMemo.
+
+Entry 8
+- User Type: Public
+- File Name: client/src/features/public/Companies/Companies.jsx
+- Warning or Missing Feature: exhaustive-deps warnings and URL-driven modal/search consistency.
+- Which code was updated / improved: Memoized companies array; converted selected company logic to derived autoSelectedCompanyId + effectiveCompanyId (no setState-in-effect pattern), kept deep-link behavior for q/search/company query params.
+
+Entry 9
+- User Type: Recruiter
+- File Name: client/src/features/recruiter/Applications/Applications.jsx
+- Warning or Missing Feature: exhaustive-deps warning from unstable raw applications list.
+- Which code was updated / improved: Memoized raw applications list from query result.
+
+Entry 10
+- User Type: Recruiter
+- File Name: client/src/features/recruiter/FindCandidates/FindCandidates.jsx
+- Warning or Missing Feature: exhaustive-deps warning from unstable candidates list.
+- Which code was updated / improved: Memoized candidates list before computing metrics.
+
+Entry 11
+- User Type: Recruiter
+- File Name: client/src/features/recruiter/RecruiterFeed/RecruiterFeed.jsx
+- Warning or Missing Feature: exhaustive-deps warnings from unstable posts/connections arrays.
+- Which code was updated / improved: Memoized posts, connections, pendingIncoming, pendingOutgoing before downstream maps/filters.
+
+Entry 12
+- User Type: Recruiter
+- File Name: client/src/features/recruiter/recruiter_dashboard/recruiter_dashboard.jsx
+- Warning or Missing Feature: exhaustive-deps warning from inline stats fallback object.
+- Which code was updated / improved: Memoized stats object with useMemo.
+
+Entry 13
+- User Type: Chat (Job Seeker + Recruiter)
+- File Name: client/src/features/shared/Chat/ChatPage.jsx
+- Warning or Missing Feature: exhaustive-deps warning from unstable conversations list.
+- Which code was updated / improved: Memoized conversations list and reused stable activeConversationId path in message/conversation query updates.
+
+Entry 14
+- User Type: Chat (Job Seeker + Recruiter)
+- File Name: client/src/features/shared/Chat/ChatRequestModal.jsx
+- Warning or Missing Feature: exhaustive-deps warning from unstable sent list.
+- Which code was updated / improved: Memoized sent list from query response.
+
+Entry 15
+- User Type: All
+- File Name: client/src/components/common/Navbar.jsx, client/src/components/common/Footer.jsx, client/src/features/recruiter/RecruiterNavbar/RecruiterNavbar.jsx, client/src/features/auth/Login/Login.jsx, client/src/features/auth/Register/Register.jsx, client/src/features/auth/ForgotPassword/ForgotPassword.jsx, client/src/features/auth/ResetPassword/ResetPassword.jsx, client/src/features/auth/VerifyEmail/VerifyEmail.jsx, client/src/features/shared/Chat/ChatRequestModal.jsx, client/src/features/recruiter/Applications/Applications.jsx
+- Warning or Missing Feature: project instruction to remove framer-motion usage and imports.
+- Which code was updated / improved: Removed all framer-motion imports/components and replaced with plain React elements; uninstalled framer-motion dependency from client package.
+
+Implemented Feature Checklist (Requested)
+- Public Home Page Improvements:
+  - Implemented. Home actions now route with query params to public jobs/companies pages and pre-filled results.
+- Recruiter Job Post Edit:
+  - Implemented. Recruiter feed supports update action routing/edit flow and backend update endpoint.
+- Job Application Status:
+  - Implemented. Recruiter applications and job seeker applications flows handle status labels/actions consistently.
+- Search Filters:
+  - Implemented. Public jobs, public companies, recruiter feed, and candidate flows use working filters with backend-connected data.
+- UI Improvements:
+  - Implemented incrementally without redesign breakage; improved modal and action consistency while preserving existing layout style.
+- Chat Feature Improvement:
+  - Implemented. Connection/friend acceptance enables chat, remove connection disables chat, chat request flow and conversation refresh logic improved.
+
+Remaining Missing or Incomplete Features
+- No blocker found in current scan for the requested six feature areas.
+- Optional future enhancement: server bootstrap refactor (separate app creation from startup) for cleaner import-only tests.

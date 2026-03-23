@@ -1,0 +1,362 @@
+================================================================================
+HIRE_X – ONLINE JOB PORTAL – PROJECT ANALYSIS (CODE ONLY; CSS FILES NOT ANALYZED)
+================================================================================
+Generated for: Final semester college project | Single developer
+Scope: Full project scan excluding .css files (per instructions).
+
+================================================================================
+1. PROJECT STRUCTURE OVERVIEW
+================================================================================
+
+ROOT (Hire_X/)
+├── client/          → React + Vite frontend (SPA)
+├── server/          → Node.js + Express + MongoDB (Mongoose) backend API
+├── Text/            → User documentation / prompts (non-runtime)
+└── (build/artifact) → client/dist after production build; server/uploads for files
+
+FRONTEND (client/)
+├── public/          → Static assets if any
+├── src/
+│   ├── main.jsx           → App bootstrap, React Query, toast provider
+│   ├── App.jsx            → Router wrapper (BrowserRouter)
+│   ├── routes/AppContent.jsx → Route definitions (public / auth / jobSeeker / recruiter)
+│   ├── layouts/           → MainLayout, AuthLayout, JobSeekerLayout, RecruiterLayout
+│   ├── components/        → Shared UI (e.g. Navbar, Footer, ProtectedRoute)
+│   ├── features/          → Feature modules by area:
+│   │   ├── auth/          → Login, Register, Forgot/Reset password, Verify email
+│   │   ├── public/        → Marketing pages: Home, JobSearch, Companies, About, Pricing
+│   │   ├── jobSeeker/     → Dashboard, jobs, companies, applications, profile, chat, saved jobs, candidates, etc.
+│   │   ├── recruiter/     → Dashboard, post job, my jobs, applications, find candidates, profile, chat
+│   │   └── shared/        → ChatPage + ChatRequestModal (used by both roles)
+│   ├── services/          → Axios API wrappers (auth, jobs, applications, recruiters, jobseekers, messages, friends, chat-request)
+│   └── utils/             → Helpers (e.g. mediaUrl, image_paths, static data)
+
+BACKEND (server/)
+├── src/
+│   ├── index.js           → Loads dotenv, connects DB, starts HTTP server
+│   ├── app.js             → Express app: CORS, JSON, static uploads, mounts /api/* routes
+│   ├── db/db.js           → MongoDB connection (MONGODB_URI)
+│   ├── routes/            → One file per API area (auth, users, jobseekers, recruiters, jobs, applications, messages, chat-request, friends)
+│   ├── controllers/       → Request handlers (business logic)
+│   ├── models/            → Mongoose schemas (User, JobSeeker, Recruiter, Job, Application, Message/Conversation, ChatRequest, Block, SavedJob, JobAlert, Friend)
+│   ├── middlewares/       → auth, role, upload (multer)
+│   └── utils/             → Helpers (e.g. mail, enableJobSeekerChat for friend/chat sync)
+└── uploads/               → Uploaded resumes/avatars (served under /uploads)
+
+WHICH FILES HANDLE WHAT (SUMMARY)
+---------------------------------
+• Routing & shell: App.jsx, AppContent.jsx, layouts, ProtectedRoute
+• Auth: client auth pages + authService + server auth routes/controller + JWT in middleware
+• Jobs: jobService + job routes/controller + Job model; recruiter creates/updates; public GET list/detail
+• Applications: applicationService + application controller + Application model
+• Profiles: jobSeekerService + recruiterService + respective controllers + JobSeeker/Recruiter models
+• Messaging: messageService + message controller + Message/Conversation + Block; chat-request for “request to chat”
+• Friends (job seekers): friendService + friends controller + Friend model + enableJobSeekerChat utility
+• Static marketing: public Home, About, Pricing, public JobSearch/Companies (often API-backed for jobs/companies)
+
+FRONTEND vs BACKEND
+-------------------
+• Frontend: all React .jsx under client/src, Vite config, client package.json
+• Backend: server/src/**/*.js (except no React), server package.json, index.js entry
+
+ROLE MAPPING (FEATURE FOLDERS & ROUTES)
+---------------------------------------
+PUBLIC (unauthenticated visitors)
+• features/public/: Home, JobSearch, Companies, AboutUs, Pricing
+• Routed under MainLayout: /, /jobs, /companies, /pricing, /about
+
+AUTH (shared)
+• features/auth/: Register, Login, ForgotPassword, ResetPassword, VerifyEmail
+• routes under AuthLayout: /register, /login, /forgot-password, /reset-password, /verify-email
+
+JOB SEEKER (role: jobseeker)
+• features/jobSeeker/: dashboard, JobSearch (authenticated), Companies, Profile, EditProfile, EditCareer, MyApplications, SavedJobs, Messages, Candidates, SaveJobButton component
+• routes under JobSeekerLayout + ProtectedRoute: /jobSeeker/dashboard, jobSearch, companies, profile, candidates, messages, savedJobs, myApplications, editCareer, EditProfile
+
+RECRUITER (role: recruiter)
+• features/recruiter/: dashboard, PostJob, MyJobs, Applications, FindCandidates, RecruiterProfile, RecruiterEditProfile, Messages, Pricing
+• routes under RecruiterLayout + ProtectedRoute: /recruiter/* as listed in AppContent.jsx
+
+SHARED (both roles)
+• features/shared/Chat: ChatPage.jsx + ChatRequestModal.jsx wired from jobSeeker/Messages and recruiter/Messages
+
+Note: Backend enforces role via roleMiddleware on protected jobseeker/recruiter routes; JWT identifies user.
+
+================================================================================
+2. IMPORTANT FILES (NAME, PURPOSE, FEATURES)
+================================================================================
+
+--- ENTRY & CONFIG ---
+client/src/main.jsx
+  Purpose: React root, TanStack Query client, global toast provider.
+  Features: App mount, global providers.
+
+client/src/App.jsx
+  Purpose: BrowserRouter wrapper.
+  Features: Top-level routing container.
+
+client/vite.config.js
+  Purpose: Vite + React plugin configuration.
+  Features: Dev server/build tooling.
+
+server/src/index.js
+  Purpose: Process entry; dotenv; DNS; connectDB; listen on PORT.
+  Features: Server startup.
+
+server/src/app.js
+  Purpose: Express app assembly and API route mounting.
+  Features: CORS, JSON, static /uploads, /api/* routes.
+
+server/src/db/db.js
+  Purpose: Mongoose connection to MongoDB.
+  Features: DB connection lifecycle.
+
+--- ROUTING (FRONTEND) ---
+client/src/routes/AppContent.jsx
+  Purpose: Declares all application routes and layouts.
+  Features: Public vs auth vs jobSeeker vs recruiter; maps URLs to page components.
+
+client/src/layouts/MainLayout.jsx
+  Purpose: Layout shell for public pages (likely navbar + outlet + footer).
+
+client/src/layouts/AuthLayout.jsx
+  Purpose: Layout for login/register flows.
+
+client/src/layouts/JobSeekerLayout.jsx
+  Purpose: Job seeker shell with navbar + protected outlet.
+
+client/src/layouts/RecruiterLayout.jsx
+  Purpose: Recruiter shell with navbar + protected outlet.
+
+client/src/components/auth/ProtectedRoute.jsx
+  Purpose: Redirects to login if no token in localStorage.
+  Features: Simple client-side route guard.
+
+--- SERVICES (FRONTEND API LAYER) ---
+client/src/services/apiService.js
+  Purpose: Axios instance with base URL and Bearer token interceptor.
+  Features: Centralized API client.
+
+client/src/services/authService.js
+  Purpose: Login, register, logout, token helpers.
+  Features: Auth API calls.
+
+client/src/services/jobService.js
+  Purpose: Jobs CRUD (public list, recruiter my-jobs, etc.).
+
+client/src/services/jobSeekerService.js
+  Purpose: Job seeker profile, resume, career sections, dashboard, saved jobs.
+
+client/src/services/recruiterService.js
+  Purpose: Recruiter profile, company, jobs by recruiter, candidate search.
+
+client/src/services/applicationService.js
+  Purpose: Apply to job, list applications (my applications, recruiter views).
+
+client/src/services/messageService.js
+  Purpose: Conversations, send message, block/unblock, blocked list.
+
+client/src/services/chatRequestService.js
+  Purpose: Chat requests (send/accept/reject), user search for chat.
+
+client/src/services/friendService.js
+  Purpose: Friend request, accept, list friends, remove friend.
+
+client/src/utils/mediaUrl.js
+  Purpose: Build absolute URLs for uploaded files (avatars, etc.).
+
+client/src/utils/image_paths.js
+  Purpose: Bundled static images imports for marketing/UI.
+
+client/src/utils/data/content.js
+  Purpose: Static marketing copy / testimonials (data only).
+
+client/src/utils/data/jobs.js
+  Purpose: Possibly legacy/static job data (verify usage if refactoring).
+
+--- BACKEND ROUTES (AGGREGATE) ---
+server/src/routes/authRoutes.js
+  Purpose: Register, login, logout, forgot password, OTP verify, reset password.
+
+server/src/routes/userRoutes.js
+  Purpose: User profile endpoints (if exposed).
+
+server/src/routes/jobSeekerRoutes.js
+  Purpose: Job seeker profile CRUD, career, dashboard, saved jobs, public list in part.
+
+server/src/routes/recruiterRoutes.js
+  Purpose: Recruiter profile, jobs, candidates search, etc.
+
+server/src/routes/jobRoutes.js
+  Purpose: Public job listing/detail; recruiter create/update/delete; my-jobs.
+
+server/src/routes/applicationRoutes.js
+  Purpose: Apply, job seeker applications, recruiter application views, status updates.
+
+server/src/routes/messageRoutes.js
+  Purpose: Conversations, messages, send, block/unblock, blocked list.
+
+server/src/routes/chatRequestRoutes.js
+  Purpose: Chat request send/accept/reject; list requests.
+
+server/src/routes/friendsRoutes.js
+  Purpose: Job seeker friends: request, accept, list, remove (integrates with chat).
+
+--- BACKEND CONTROLLERS (CORE LOGIC) ---
+server/src/controllers/auth.controller.js
+  Purpose: Authentication and password flows.
+
+server/src/controllers/job.Controller.js
+  Purpose: Job CRUD and listing queries.
+
+server/src/controllers/jobSeeker.Controller.js
+  Purpose: Job seeker profile, experience, education, dashboard, saved jobs, listing job seekers.
+
+server/src/controllers/recruiter.Controller.js
+  Purpose: Recruiter/company profile, jobs aggregation, public recruiter listings.
+
+server/src/controllers/application.Controller.js
+  Purpose: Applications, apply with resume, status updates.
+
+server/src/controllers/message.Controller.js
+  Purpose: Messaging, conversations, blocking, last message updates.
+
+server/src/controllers/chatRequest.Controller.js
+  Purpose: Chat requests and conversation creation on accept.
+
+server/src/controllers/friends.Controller.js
+  Purpose: Friend graph for job seekers; syncs with ChatRequest/conversation helpers.
+
+server/src/utils/enableJobSeekerChat.js
+  Purpose: When friendship accepted, ensure accepted ChatRequest + DM conversation; on remove, tear down chat.
+
+--- MODELS (BACKEND) ---
+server/src/models/User.js
+  Purpose: Credentials, role (jobseeker | recruiter), avatar, etc.
+
+server/src/models/JobSeeker.js
+  Purpose: Seeker-specific profile, resume, skills, experience/education subdocs.
+
+server/src/models/Recruiter.js
+  Purpose: Company fields, logo, link to user.
+
+server/src/models/Job.js
+  Purpose: Job postings, recruiter ref, status.
+
+server/src/models/Application.js
+  Purpose: Seeker application to a job.
+
+server/src/models/Message.js and Conversation export
+  Purpose: Chat messages and conversations (optional job context).
+
+server/src/models/ChatRequest.js
+  Purpose: Pending/accepted/rejected chat between users.
+
+server/src/models/Block.js
+  Purpose: Blocking for messaging.
+
+server/src/models/SavedJob.js
+  Purpose: Job seeker saved jobs.
+
+server/src/models/JobAlert.js
+  Purpose: Schema for job alerts (feature completeness may vary).
+
+server/src/models/Friend.js
+  Purpose: Job seeker friend requests and accepted friendships.
+
+--- KEY FEATURE MODULES (FRONTEND) ---
+client/src/features/shared/Chat/ChatPage.jsx
+  Purpose: Full inbox UI (sidebar, thread, composer, block, chat request modal).
+  Features: Conversations, messages, apply modal integration not here; friend/block/chat request.
+
+client/src/features/shared/Chat/ChatRequestModal.jsx
+  Purpose: Search users, send/accept/reject chat requests.
+
+client/src/features/jobSeeker/MyApplications/MyApplications.jsx + ApplicationCard.jsx
+  Purpose: List applications with filters; cards link to company jobs modal pattern.
+
+client/src/features/jobSeeker/Candidates/Candidates.jsx
+  Purpose: Discover job seekers, friends, friend requests, search filters.
+
+client/src/features/jobSeeker/components/SaveJobButton.jsx
+  Purpose: Reusable save/unsave job.
+
+client/src/features/recruiter/PostJob/PostJob.jsx
+  Purpose: Create/edit job posting.
+
+client/src/features/recruiter/Applications/Applications.jsx
+  Purpose: Recruiter view of applicants per job.
+
+client/src/features/public/Home/Home.jsx
+  Purpose: Landing/marketing home (sections composed from components).
+
+================================================================================
+3. MISSING OR INCOMPLETE PARTS
+================================================================================
+
+• Job alerts: JobAlerts.jsx exists under jobSeeker but is NOT registered in AppContent.jsx (routes commented or missing in current file). Likely incomplete or demo-only (check for hardcoded data).
+
+• Job seeker “Home” landing: No dedicated jobSeeker/Home route in AppContent.jsx; nav may point to dashboard as primary entry (logo links to dashboard in JobSeekerNavbar).
+
+• Environment/config: CORS origin is hardcoded to localhost:5173 in server app.js (deployment/production must be adjusted).
+
+• Public vs authenticated job search: Duplication exists (public JobSearch vs jobSeeker JobSearch) — maintenance burden if features diverge.
+
+• Admin panel: No admin role or routes detected in scanned code (only an image asset reference for admin banner).
+
+• JobAlert model: Present on server; dashboard stats may reference alerts — verify end-to-end CRUD if required for grading.
+
+• Testing: No automated test folders observed in scan (no Jest/Vitest structure in root).
+
+• Documentation: README may exist; runtime architecture docs are minimal.
+
+================================================================================
+4. SIMPLE SUGGESTIONS (ACHIEVABLE FOR ONE STUDENT, LIMITED TIME)
+================================================================================
+
+1) Wire or remove JobAlerts: Either add route + backend for JobAlert CRUD, or remove the unused page to avoid confusion.
+
+2) Unify environment: Move API base URL and CORS origin to .env on both client and server for demo video and deployment.
+
+3) Add a short README section: How to run (npm install, npm run dev, MongoDB URI), default ports, and test accounts if any.
+
+4) Consistent navigation: Ensure every navbar link has a matching route in AppContent.jsx (quick manual click-through).
+
+5) Error handling UX: Show one consistent toast or inline message pattern on failed API calls (many pages already use react-hot-toast).
+
+6) Seed script (optional): One script to insert sample users, one job, one application — helps demo and screenshots.
+
+7) Duplicate file paths: Some features appear duplicated (e.g. multiple Companies folders paths in git). Consolidate one canonical folder per feature to avoid editing the wrong file.
+
+================================================================================
+5. LAYOUT / STRUCTURE ISSUES (NON-CSS)
+================================================================================
+
+• Feature folder duplication: Overlapping paths (e.g. jobSeeker Companies vs public Companies) are intentional for roles but increase confusion; same for possible duplicate MyApplications paths — risk of editing stale copies.
+
+• Route naming inconsistency: Mixed casing (e.g. /jobSeeker/EditProfile vs lowercase paths) — harder to remember and document.
+
+• “shared/Chat” under features while Messages wrappers are thin re-exports — good separation, but the folder name “shared” is easy to miss when onboarding.
+
+• Large ChatPage.jsx: Many responsibilities (inbox, modals, block list, mutations) — harder to debug for a semester project (acceptable but dense).
+
+• Backend route order: Dynamic routes (e.g. /:id) must stay after static segments (already a common Express pattern; worth double-checking when adding new routes).
+
+• Build artifact: client/dist committed or present in workspace can bloat repo — optional .gitignore improvement.
+
+WHY THESE ARE “NOT IDEAL”
+------------------------
+They do not break the app by themselves, but they increase cognitive load, duplicate maintenance, and make deployment or grading setup error-prone without clear documentation.
+
+================================================================================
+6. SIMPLE IMPROVEMENTS (NOT INDUSTRY-HEAVY)
+================================================================================
+
+• One README “Runbook” (half page) with ports and env vars.
+• Single source of truth for API URL on client (Vite env) already partially used — extend to CORS.
+• Optional: default redirect after login by role (/jobSeeker/dashboard vs /recruiter/dashboard) if not already in Login.jsx.
+• Quick manual test checklist: register → login → post job → apply → message → save job (for demo script).
+
+================================================================================
+END OF ANALYSIS
+================================================================================

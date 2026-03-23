@@ -1,13 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   blockUser,
+  getBlockedUsers,
   getConversations,
   getMessagesByConversation,
   sendMessage,
   unblockUser,
 } from "../../../services/messageService";
+import { toPublicUrl } from "../../../utils/mediaUrl.js";
 import ChatRequestModal from "./ChatRequestModal";
 import "./ChatPage.css";
 
@@ -37,6 +38,17 @@ const initials = (name = "") => {
   return (first + second).toUpperCase() || "U";
 };
 
+function UserAvatar({ user, className = "", size = "md" }) {
+  const label = user?.fullName || user?.email || "User";
+  const url = toPublicUrl(user?.avatar);
+  const sizeMod = size === "sm" ? " chat__avatar--sm" : size === "xs" ? " chat__avatar--xs" : "";
+  return (
+    <div className={`chat__avatar${sizeMod} ${className}`.trim()} aria-hidden>
+      {url ? <img src={url} alt="" className="chat__avatarImg" /> : initials(label)}
+    </div>
+  );
+}
+
 const formatTime = (iso) => {
   try {
     const d = new Date(iso);
@@ -61,6 +73,7 @@ const formatDayLabel = (iso) => {
 export default function ChatPage({ role }) {
   const queryClient = useQueryClient();
   const [activeId, setActiveId] = useState(null);
+  const [sidebarTab, setSidebarTab] = useState("chats"); // chats | blocked
   const [search, setSearch] = useState("");
   const [text, setText] = useState("");
   const [toast, setToast] = useState({ type: "", message: "" });
@@ -74,7 +87,14 @@ export default function ChatPage({ role }) {
     refetchInterval: 8000,
   });
 
-  const conversations = data?.conversations || [];
+  const { data: blockedData, isLoading: blockedLoading } = useQuery({
+    queryKey: ["blockedUsers"],
+    queryFn: getBlockedUsers,
+  });
+
+  const blockedList = blockedData?.blocked || [];
+
+  const conversations = useMemo(() => data?.conversations || [], [data]);
 
   const filteredConversations = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -86,15 +106,11 @@ export default function ChatPage({ role }) {
     });
   }, [conversations, search]);
 
-  useEffect(() => {
-    if (!activeId && conversations.length) {
-      setActiveId(conversations[0]._id);
-    }
-  }, [activeId, conversations]);
+  const activeConversationId = activeId || conversations[0]?._id || null;
 
   const activeConversation = useMemo(
-    () => conversations.find((c) => c._id === activeId) || null,
-    [conversations, activeId],
+    () => conversations.find((c) => c._id === activeConversationId) || null,
+    [conversations, activeConversationId],
   );
 
   const otherUser = activeConversation?.otherUser || null;
@@ -103,9 +119,9 @@ export default function ChatPage({ role }) {
     data: messagesData,
     isLoading: messagesLoading,
   } = useQuery({
-    queryKey: ["messages", activeId],
-    queryFn: () => getMessagesByConversation(activeId),
-    enabled: Boolean(activeId),
+    queryKey: ["messages", activeConversationId],
+    queryFn: () => getMessagesByConversation(activeConversationId),
+    enabled: Boolean(activeConversationId),
   });
 
   const messages = messagesData?.messages || [];
@@ -113,55 +129,95 @@ export default function ChatPage({ role }) {
   const chatRequest = messagesData?.chatRequest || { status: "none", canChat: false, requestId: null };
 
   useEffect(() => {
-    // auto scroll on message load/update
     requestAnimationFrame(() => {
       if (scrollRef.current) {
         scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
       }
     });
-  }, [activeId, messages.length]);
+  }, [activeConversationId, messages.length, messagesLoading]);
+
+  const showToast = (type, message, ms = 3000) => {
+    setToast({ type, message });
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(() => setToast({ type: "", message: "" }), ms);
+  };
 
   const sendMutation = useMutation({
     mutationFn: sendMessage,
-    onSuccess: (res) => {
+    onSuccess: (resData) => {
       setText("");
-      const newConversationId = res?.conversationId;
-      if (newConversationId && newConversationId !== activeId) setActiveId(newConversationId);
-      queryClient.invalidateQueries(["conversations"]);
-      queryClient.invalidateQueries(["messages", activeId]);
+      const convId = resData?.conversationId;
+      const newMsg = resData?.message;
+
+      if (convId) {
+        setActiveId(convId);
+
+        if (newMsg) {
+          queryClient.setQueryData(["messages", convId], (old) => {
+            if (!old) return old;
+            const list = old.messages || [];
+            if (list.some((m) => String(m._id) === String(newMsg._id))) return old;
+            return { ...old, messages: [...list, newMsg] };
+          });
+
+          queryClient.setQueryData(["conversations"], (old) => {
+            if (!old?.conversations) return old;
+            let found = false;
+            const next = old.conversations.map((c) => {
+              if (String(c._id) !== String(convId)) return c;
+              found = true;
+              return {
+                ...c,
+                lastMessage: {
+                  content: newMsg.content,
+                  senderId: newMsg.senderId,
+                  createdAt: newMsg.createdAt,
+                },
+                updatedAt: newMsg.createdAt,
+              };
+            });
+            return found ? { ...old, conversations: next } : old;
+          });
+        }
+
+        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+        queryClient.invalidateQueries({ queryKey: ["messages", convId] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+        queryClient.invalidateQueries({ queryKey: ["messages", activeConversationId] });
+      }
     },
     onError: (err) => {
       const msg = err?.response?.data?.message || "Failed to send message.";
-      setToast({ type: "error", message: msg });
-      setTimeout(() => setToast({ type: "", message: "" }), 3000);
+      showToast("error", msg, 3500);
     },
   });
 
   const blockMutation = useMutation({
     mutationFn: (blockedUserId) => blockUser(blockedUserId),
     onSuccess: () => {
-      queryClient.invalidateQueries(["messages", activeId]);
-      setToast({ type: "success", message: "User blocked." });
-      setTimeout(() => setToast({ type: "", message: "" }), 2200);
+      queryClient.invalidateQueries({ queryKey: ["messages", activeConversationId] });
+      queryClient.invalidateQueries({ queryKey: ["blockedUsers"] });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      showToast("success", "User blocked.", 2200);
     },
     onError: (err) => {
       const msg = err?.response?.data?.message || "Failed to block user.";
-      setToast({ type: "error", message: msg });
-      setTimeout(() => setToast({ type: "", message: "" }), 3000);
+      showToast("error", msg, 3500);
     },
   });
 
   const unblockMutation = useMutation({
     mutationFn: (blockedUserId) => unblockUser(blockedUserId),
     onSuccess: () => {
-      queryClient.invalidateQueries(["messages", activeId]);
-      setToast({ type: "success", message: "User unblocked." });
-      setTimeout(() => setToast({ type: "", message: "" }), 2200);
+      queryClient.invalidateQueries({ queryKey: ["messages", activeConversationId] });
+      queryClient.invalidateQueries({ queryKey: ["blockedUsers"] });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      showToast("success", "User unblocked.", 2200);
     },
     onError: (err) => {
       const msg = err?.response?.data?.message || "Failed to unblock user.";
-      setToast({ type: "error", message: msg });
-      setTimeout(() => setToast({ type: "", message: "" }), 3000);
+      showToast("error", msg, 3500);
     },
   });
 
@@ -173,16 +229,13 @@ export default function ChatPage({ role }) {
     sendMutation.mutate({
       receiverId: otherUser._id,
       content,
-      conversationId: activeId,
+      conversationId: activeConversationId,
     });
   };
 
   return (
-    <motion.div
+    <div
       className={`chat chat--${role}`}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
     >
       <div className="chat__shell">
         <div className="chat__sidebar">
@@ -191,121 +244,178 @@ export default function ChatPage({ role }) {
               <h2 className="chat__brandTitle">Messages</h2>
               <p className="chat__brandSub">{role === "recruiter" ? "Candidate inbox" : "Recruiter chats"}</p>
             </div>
-            <div className="chat__search">
-              <span className="chat__searchIcon"><SearchIcon /></span>
-              <input
-                className="chat__searchInput"
-                placeholder="Search conversations…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+
+            <div className="chat__sidebarTabs" role="tablist" aria-label="Inbox sections">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={sidebarTab === "chats"}
+                className={`chat__tab ${sidebarTab === "chats" ? "chat__tab--active" : ""}`}
+                onClick={() => setSidebarTab("chats")}
+              >
+                Chats
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={sidebarTab === "blocked"}
+                className={`chat__tab ${sidebarTab === "blocked" ? "chat__tab--active" : ""}`}
+                onClick={() => setSidebarTab("blocked")}
+              >
+                Blocked
+                {blockedList.length > 0 ? <span className="chat__tabBadge">{blockedList.length}</span> : null}
+              </button>
             </div>
+
+            {sidebarTab === "chats" && (
+              <div className="chat__search">
+                <span className="chat__searchIcon"><SearchIcon /></span>
+                <input
+                  className="chat__searchInput"
+                  placeholder="Search conversations…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+            )}
           </div>
 
           <div className="chat__convoList">
-            {isLoading && (
-              <div className="chat__convoSkelWrap">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="chat__convoSkel" />
-                ))}
-              </div>
-            )}
-            {isError && (
-              <div className="chat__empty">
-                <p className="chat__emptyTitle">Could not load conversations</p>
-                <p className="chat__emptyDesc">{error?.response?.data?.message || "Please try again."}</p>
-              </div>
-            )}
-            {!isLoading && !isError && filteredConversations.length === 0 && (
-              <div className="chat__empty">
-                <p className="chat__emptyTitle">No conversations</p>
-                <p className="chat__emptyDesc">Once you start chatting, it will appear here.</p>
-              </div>
+            {sidebarTab === "chats" && (
+              <>
+                {isLoading && (
+                  <div className="chat__convoSkelWrap">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="chat__convoSkel" />
+                    ))}
+                  </div>
+                )}
+                {isError && (
+                  <div className="chat__empty">
+                    <p className="chat__emptyTitle">Could not load conversations</p>
+                    <p className="chat__emptyDesc">{error?.response?.data?.message || "Please try again."}</p>
+                  </div>
+                )}
+                {!isLoading && !isError && filteredConversations.length === 0 && (
+                  <div className="chat__empty">
+                    <p className="chat__emptyTitle">No conversations</p>
+                    <p className="chat__emptyDesc">Once you start chatting, it will appear here.</p>
+                  </div>
+                )}
+
+                  {!isLoading && !isError && filteredConversations.map((c) => {
+                    const name = c.otherUser?.fullName || c.otherUser?.email || "User";
+                    const preview = c.lastMessage?.content || "No messages yet";
+                    const t = c.lastMessage?.createdAt || c.updatedAt;
+                    return (
+                      <button
+                        key={c._id}
+                        className={`chat__convo ${c._id === activeConversationId ? "chat__convo--active" : ""}`}
+                        onClick={() => setActiveId(c._id)}
+                      >
+                        <UserAvatar user={c.otherUser} />
+                        <div className="chat__convoMain">
+                          <div className="chat__convoTop">
+                            <span className="chat__convoName">{name}</span>
+                            <span className="chat__convoTime">{formatDayLabel(t)}</span>
+                          </div>
+                          <div className="chat__convoPreview">{preview}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+              </>
             )}
 
-            <AnimatePresence initial={false}>
-              {!isLoading && !isError && filteredConversations.map((c) => {
-                const name = c.otherUser?.fullName || c.otherUser?.email || "User";
-                const preview = c.lastMessage?.content || "No messages yet";
-                const t = c.lastMessage?.createdAt || c.updatedAt;
-                return (
-                  <motion.button
-                    key={c._id}
-                    className={`chat__convo ${c._id === activeId ? "chat__convo--active" : ""}`}
-                    onClick={() => setActiveId(c._id)}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="chat__avatar">{initials(name)}</div>
-                    <div className="chat__convoMain">
-                      <div className="chat__convoTop">
-                        <span className="chat__convoName">{name}</span>
-                        <span className="chat__convoTime">{formatDayLabel(t)}</span>
-                      </div>
-                      <div className="chat__convoPreview">{preview}</div>
-                    </div>
-                  </motion.button>
-                );
-              })}
-            </AnimatePresence>
+            {sidebarTab === "blocked" && (
+              <div className="chat__blockedPanel">
+                {blockedLoading && (
+                  <div className="chat__convoSkelWrap">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="chat__convoSkel" />
+                    ))}
+                  </div>
+                )}
+                {!blockedLoading && blockedList.length === 0 && (
+                  <div className="chat__empty chat__empty--tight">
+                    <p className="chat__emptyTitle">No blocked users</p>
+                    <p className="chat__emptyDesc">People you block appear here. You can unblock anytime.</p>
+                  </div>
+                )}
+                {!blockedLoading && blockedList.length > 0 && (
+                  <ul className="chat__blockedList">
+                    {blockedList.map((u) => (
+                      <li key={String(u._id)} className="chat__blockedRow">
+                        <UserAvatar user={u} />
+                        <div className="chat__blockedInfo">
+                          <div className="chat__blockedName">{u.fullName || u.email}</div>
+                          <div className="chat__blockedMeta">{u.role === "recruiter" ? "Recruiter" : "Job seeker"}</div>
+                        </div>
+                        <button
+                          type="button"
+                          className="chat__blockedUnblock"
+                          disabled={unblockMutation.isPending}
+                          onClick={() => unblockMutation.mutate(u._id)}
+                        >
+                          Unblock
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
         <div className="chat__main">
-        <div className="chat__header">
-  <div className="chat__headerLeft">
-    {otherUser ? (
-      <>
-        <div className="chat__headerAvatar">
-          {initials(otherUser.fullName || otherUser.email)}
-        </div>
-        <div>
-          <div className="chat__headerName">
-            {otherUser.fullName || otherUser.email}
-          </div>
-          <div className="chat__headerMeta">
-            {role === "recruiter" ? "Candidate" : "Recruiter"}
-          </div>
-        </div>
-      </>
-    ) : (
-      <div className="chat__headerPlaceholder">
-        Select a conversation
-      </div>
-    )}
-  </div>
+          <div className="chat__header">
+            <div className="chat__headerLeft">
+              {otherUser ? (
+                <>
+                  <UserAvatar user={otherUser} className="chat__avatar--header" />
+                  <div>
+                    <div className="chat__headerName">
+                      {otherUser.fullName || otherUser.email}
+                    </div>
+                    <div className="chat__headerMeta">
+                      {role === "recruiter" ? "Candidate" : "Recruiter"}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="chat__headerPlaceholder">
+                  Select a conversation
+                </div>
+              )}
+            </div>
 
-  {/* ✅ ALWAYS SHOW BUTTON */}
-  <div className="chat__headerRight">
-    <button
-      className="chat__reqBtn"
-      type="button"
-      onClick={() => setOpenRequestModal(true)}
-    >
-      Request Chat
-    </button>
+            <div className="chat__headerRight">
+              <button
+                className="chat__reqBtn"
+                type="button"
+                onClick={() => setOpenRequestModal(true)}
+              >
+                Request Chat
+              </button>
 
-    {otherUser && (
-      <button
-        className={`chat__blockBtn ${
-          block.viewerBlockedOther ? "chat__blockBtn--on" : ""
-        }`}
-        onClick={() => {
-          if (!otherUser?._id) return;
-          if (block.viewerBlockedOther)
-            unblockMutation.mutate(otherUser._id);
-          else blockMutation.mutate(otherUser._id);
-        }}
-        disabled={blockMutation.isPending || unblockMutation.isPending}
-      >
-        <BlockIcon />
-        {block.viewerBlockedOther ? "Unblock" : "Block"}
-      </button>
-    )}
-  </div>
-</div>
+              {otherUser && (
+                <button
+                  className={`chat__blockBtn ${block.viewerBlockedOther ? "chat__blockBtn--on" : ""}`}
+                  type="button"
+                  onClick={() => {
+                    if (!otherUser?._id) return;
+                    if (block.viewerBlockedOther) unblockMutation.mutate(otherUser._id);
+                    else blockMutation.mutate(otherUser._id);
+                  }}
+                  disabled={blockMutation.isPending || unblockMutation.isPending}
+                >
+                  <BlockIcon />
+                  {block.viewerBlockedOther ? "Unblock" : "Block"}
+                </button>
+              )}
+            </div>
+          </div>
 
           <div className="chat__body" ref={scrollRef}>
             {messagesLoading && (
@@ -323,31 +433,28 @@ export default function ChatPage({ role }) {
             )}
 
             {!messagesLoading && messages.length > 0 && (
-              <motion.div
+              <div
                 className="chat__msgs"
-                initial="hidden"
-                animate="show"
-                variants={{
-                  hidden: { opacity: 0 },
-                  show: { opacity: 1, transition: { staggerChildren: 0.04 } },
-                }}
               >
                 {messages.map((m) => {
                   const mine = String(m.senderId) !== String(otherUser?._id);
+                  const themUser = m.sender && !mine ? m.sender : otherUser;
                   return (
-                    <motion.div
+                    <div
                       key={m._id}
                       className={`chat__msgRow ${mine ? "chat__msgRow--me" : ""}`}
-                      variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
                     >
+                      {!mine && (
+                        <UserAvatar user={themUser} size="xs" className="chat__msgAvatar" />
+                      )}
                       <div className={`chat__bubble ${mine ? "chat__bubble--me" : "chat__bubble--them"}`}>
                         <div className="chat__bubbleText">{m.content}</div>
                         <div className="chat__bubbleTime">{formatTime(m.createdAt)}</div>
                       </div>
-                    </motion.div>
+                    </div>
                   );
                 })}
-              </motion.div>
+              </div>
             )}
           </div>
 
@@ -382,7 +489,7 @@ export default function ChatPage({ role }) {
                     }
                   }}
                 />
-                <button className="chat__sendBtn" onClick={onSend} disabled={sendMutation.isPending}>
+                <button className="chat__sendBtn" type="button" onClick={onSend} disabled={sendMutation.isPending}>
                   <SendIcon />
                   {sendMutation.isPending ? "Sending…" : "Send"}
                 </button>
@@ -398,25 +505,18 @@ export default function ChatPage({ role }) {
         role={role}
         activeOtherUserId={otherUser?._id}
         onRequestStateChange={() => {
-          queryClient.invalidateQueries(["conversations"]);
-          queryClient.invalidateQueries(["messages", activeId]);
+          queryClient.invalidateQueries({ queryKey: ["conversations"] });
+          queryClient.invalidateQueries({ queryKey: ["messages", activeConversationId] });
         }}
       />
 
-      <AnimatePresence>
         {toast.message && (
-          <motion.div
+          <div
             className={`chat__toast ${toast.type === "error" ? "chat__toast--error" : "chat__toast--success"}`}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.2 }}
           >
             {toast.message}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
-

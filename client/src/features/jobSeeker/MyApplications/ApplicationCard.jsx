@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
 const FileIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -43,18 +42,15 @@ const extractFileName = (url = "") => {
 export default function ApplicationCard({
   application,
   badge,
-  onOpenJob,
+  onViewCompanyJobs,
+  canViewCompanyJobs,
 }) {
   const [expanded, setExpanded] = useState(false);
 
   const resumeName = useMemo(() => extractFileName(application.resumeUrl), [application.resumeUrl]);
 
   return (
-    <motion.article
-      className="ma-card"
-      whileHover={{ scale: 1.01 }}
-      transition={{ type: "spring", stiffness: 380, damping: 26 }}
-    >
+    <article className="ma-card">
       <div className="ma-card__top">
         <div className="ma-card__logo" aria-hidden>
           {badge}
@@ -107,30 +103,30 @@ export default function ApplicationCard({
             </span>
           </button>
 
-          <AnimatePresence initial={false}>
-            {expanded && (
-              <motion.div
-                className="ma-message"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.22 }}
-              >
-                <p className="ma-message__text">
-                  {application.message || "No message provided."}
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {expanded && (
+            <div className="ma-message">
+              <p className="ma-message__text">
+                {application.message || "No message provided."}
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="ma-card__actions">
-          <button className="ma-btn ma-btn--ghost" type="button" onClick={onOpenJob}>
-            View job
+          <button
+            type="button"
+            className="view-jobs-btn"
+            disabled={!canViewCompanyJobs}
+            onClick={() => onViewCompanyJobs?.()}
+          >
+            View Jobs
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
           </button>
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }
-

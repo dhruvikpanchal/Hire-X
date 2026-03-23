@@ -1,0 +1,299 @@
+1) Architecture Diagram
+
+```mermaid
+flowchart LR
+    subgraph UI["Frontend (React)"]
+      JS["Job Seeker UI"]
+      RC["Recruiter UI"]
+      RQ["React Query / Axios"]
+    end
+
+    subgraph API["Backend (Node.js + Express)"]
+      AU["Auth Routes"]
+      JR["Job Routes"]
+      AR["Application Routes"]
+      PR["Profile Routes"]
+      CT["Controllers + Middleware (JWT)"]
+    end
+
+    subgraph DB["Database (MongoDB)"]
+      U[("Users")]
+      J[("Jobs")]
+      AP[("Applications")]
+      JP[("JobSeeker Profiles")]
+      RP[("Recruiter Profiles")]
+    end
+
+    JS --> RQ
+    RC --> RQ
+    RQ --> AU
+    RQ --> JR
+    RQ --> AR
+    RQ --> PR
+
+    AU --> CT
+    JR --> CT
+    AR --> CT
+    PR --> CT
+
+    CT --> U
+    CT --> J
+    CT --> AP
+    CT --> JP
+    CT --> RP
+```
+
+2) Use Case Diagram
+
+```mermaid
+flowchart LR
+    JS["Job Seeker"]
+    RC["Recruiter"]
+
+    subgraph Portal["Hire X Job Portal"]
+      UC1["Register / Login"]
+      UC2["Manage Job Seeker Profile"]
+      UC3["Search & View Jobs"]
+      UC4["Apply for Job"]
+      UC5["Track Applications"]
+      UC6["Manage Recruiter Profile"]
+      UC7["Post Job"]
+      UC8["Manage Posted Jobs"]
+      UC9["View Applicants"]
+      UC10["Find Candidates"]
+    end
+
+    JS --> UC1
+    JS --> UC2
+    JS --> UC3
+    JS --> UC4
+    JS --> UC5
+
+    RC --> UC1
+    RC --> UC6
+    RC --> UC7
+    RC --> UC8
+    RC --> UC9
+    RC --> UC10
+```
+
+3) Class Diagram
+
+```mermaid
+classDiagram
+    class User {
+      +ObjectId _id
+      +string fullName
+      +string email
+      +string password
+      +string role
+      +string avatar
+      +string location
+      +register()
+      +login()
+    }
+
+    class JobSeekerProfile {
+      +ObjectId _id
+      +ObjectId userId
+      +string jobTitle
+      +string[] skills
+      +string bio
+      +string resumeUrl
+      +updateProfile()
+    }
+
+    class RecruiterProfile {
+      +ObjectId _id
+      +ObjectId userId
+      +string companyName
+      +string jobTitle
+      +string companyWebsite
+      +string companyDescription
+      +updateProfile()
+    }
+
+    class Job {
+      +ObjectId _id
+      +ObjectId recruiterId
+      +string title
+      +string description
+      +string location
+      +string type
+      +string status
+      +createJob()
+      +updateJob()
+      +closeJob()
+    }
+
+    class Application {
+      +ObjectId _id
+      +ObjectId jobId
+      +ObjectId jobSeekerId
+      +string status
+      +date appliedAt
+      +apply()
+      +updateStatus()
+    }
+
+    User "1" --> "0..1" JobSeekerProfile : has
+    User "1" --> "0..1" RecruiterProfile : has
+    User "1" --> "0..*" Job : posts
+    User "1" --> "0..*" Application : submits
+    Job "1" --> "0..*" Application : receives
+```
+
+4) Sequence Diagram – Login Flow
+
+```mermaid
+sequenceDiagram
+    actor U as User (Job Seeker / Recruiter)
+    participant FE as Frontend (React)
+    participant BE as Backend (Express)
+    participant DB as MongoDB
+
+    U->>FE: Enter email + password
+    FE->>BE: POST /auth/login
+    BE->>DB: Find user by email
+    DB-->>BE: User record
+    BE->>BE: Verify password + generate JWT
+    BE-->>FE: 200 + token + user
+    FE->>FE: Store token, route by role
+    FE-->>U: Show role dashboard
+```
+
+5) Sequence Diagram – Job Application Flow
+
+```mermaid
+sequenceDiagram
+    actor JS as Job Seeker
+    participant FE as Frontend
+    participant BE as Backend
+    participant DB as MongoDB
+    actor RC as Recruiter
+
+    JS->>FE: Click "Apply" on job
+    FE->>BE: POST /applications (jobId)
+    BE->>DB: Validate user + job + duplicate check
+    DB-->>BE: Validation result
+    BE->>DB: Save application
+    DB-->>BE: Application created
+    BE-->>FE: 201 success
+    FE-->>JS: Show "Applied successfully"
+    BE-->>RC: Application visible in applicants list
+```
+
+6) Activity Diagram – Job Seeker
+
+```mermaid
+flowchart TD
+    A([Start]) --> B[Login / Register]
+    B --> C[Open Job Seeker Dashboard]
+    C --> D[Update Profile & Resume]
+    D --> E[Search / Filter Jobs]
+    E --> F{Job matched?}
+    F -- No --> E
+    F -- Yes --> G[View Job Details]
+    G --> H[Apply for Job]
+    H --> I[Track Application Status]
+    I --> J([End])
+```
+
+7) Activity Diagram – Recruiter
+
+```mermaid
+flowchart TD
+    A([Start]) --> B[Login / Register]
+    B --> C[Open Recruiter Dashboard]
+    C --> D[Update Company Profile]
+    D --> E[Post New Job]
+    E --> F[Manage Job Posts]
+    F --> G[Review Applicants]
+    G --> H[Find Candidates]
+    H --> I[Shortlist / Contact]
+    I --> J([End])
+```
+
+8) DFD Level 0
+
+```mermaid
+flowchart LR
+    JS["Job Seeker"] --> P0["P0: Hire X Job Portal"]
+    RC["Recruiter"] --> P0
+
+    P0 --> JS
+    P0 --> RC
+
+    P0 <--> D1[("D1 Users")]
+    P0 <--> D2[("D2 Jobs")]
+    P0 <--> D3[("D3 Applications")]
+    P0 <--> D4[("D4 Profiles")]
+```
+
+9) DFD Level 1 – Job Seeker
+
+```mermaid
+flowchart LR
+    JS["Job Seeker"] --> P11["1.1 Authenticate"]
+    JS --> P12["1.2 Manage Profile"]
+    JS --> P13["1.3 Search Jobs"]
+    JS --> P14["1.4 Apply Job"]
+    JS --> P15["1.5 Track Applications"]
+
+    P11 <--> D1[("D1 Users")]
+    P12 <--> D4[("D4 Profiles")]
+    P13 <--> D2[("D2 Jobs")]
+    P14 <--> D2
+    P14 <--> D3[("D3 Applications")]
+    P15 <--> D3
+```
+
+10) DFD Level 1 – Recruiter
+
+```mermaid
+flowchart LR
+    RC["Recruiter"] --> P21["2.1 Authenticate"]
+    RC --> P22["2.2 Manage Profile"]
+    RC --> P23["2.3 Post / Update Jobs"]
+    RC --> P24["2.4 View Applicants"]
+    RC --> P25["2.5 Find Candidates"]
+
+    P21 <--> D1[("D1 Users")]
+    P22 <--> D4[("D4 Profiles")]
+    P23 <--> D2[("D2 Jobs")]
+    P24 <--> D3[("D3 Applications")]
+    P24 <--> D2
+    P25 <--> D4
+```
+
+11) DFD Level 2 – Apply Job
+
+```mermaid
+flowchart LR
+    JS["Job Seeker"] --> P141["1.4.1 Select Job"]
+    P141 --> P142["1.4.2 Validate Eligibility"]
+    P142 --> P143["1.4.3 Check Duplicate Application"]
+    P143 --> P144["1.4.4 Save Application"]
+    P144 --> P145["1.4.5 Confirm Status to User"]
+
+    P141 <--> D2[("D2 Jobs")]
+    P142 <--> D4[("D4 JobSeeker Profile")]
+    P143 <--> D3[("D3 Applications")]
+    P144 <--> D3
+```
+
+12) DFD Level 2 – Post Job
+
+```mermaid
+flowchart LR
+    RC["Recruiter"] --> P231["2.3.1 Enter Job Details"]
+    P231 --> P232["2.3.2 Validate Recruiter & Input"]
+    P232 --> P233["2.3.3 Save / Publish Job"]
+    P233 --> P234["2.3.4 Update Job List"]
+    P234 --> P235["2.3.5 Show Confirmation"]
+
+    P232 <--> D1[("D1 Users")]
+    P232 <--> D4[("D4 Recruiter Profile")]
+    P233 <--> D2[("D2 Jobs")]
+    P234 <--> D2
+```

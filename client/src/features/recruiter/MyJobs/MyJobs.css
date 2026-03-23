@@ -104,10 +104,11 @@
   padding: 38px 28px 34px;
   position: relative;
   overflow: hidden;
-  animation: mj-header-in 0.4s var(--mj-ease) both;
+  animation: none !important;
 }
 
 .myjobs-header-bg {
+  display: none;
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -1126,16 +1127,20 @@ RESPONSIVE
 /* ─── Dropdown Menu ─── */
 .myjobs-status-menu {
   position: absolute;
-  top: 120%;
-  left: 0;
+  top: -100%;
+  left: 100%;   /* place dropdown to the right side */
+
   min-width: 130px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
+  background: #fff;
+  border-radius: 10px;
   padding: 6px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(10px);
-  animation: fadeIn 0.2s ease;
-  z-index: 50;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-6px);
+  transition: all 0.2s ease;
+  z-index: 100;
 }
 
 /* ─── Dropdown Option ─── */
@@ -1174,32 +1179,14 @@ RESPONSIVE
 
 .myjobs-status-dropdown {
   position: relative;
-  display: inline-block;
-}
-
-/* hide by default */
-.myjobs-status-menu {
-  position: absolute;
-  top: 120%;
-  left: 0;
-  min-width: 130px;
-  background: #fff;
-  border-radius: 10px;
-  padding: 6px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-6px);
-  transition: all 0.2s ease;
-  z-index: 100;
+  display: inline-flex;
 }
 
 /* SHOW ON HOVER */
 .myjobs-status-dropdown:hover .myjobs-status-menu {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateX(0);
 }
 
 /* option */

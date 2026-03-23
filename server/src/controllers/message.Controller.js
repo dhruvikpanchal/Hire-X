@@ -257,3 +257,34 @@ export const unblockUser = async (req, res) => {
   }
 };
 
+/* =========================================================
+   GET USERS I BLOCKED
+   GET /api/messages/blocked
+========================================================= */
+export const getBlockedUsers = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const blocks = await Block.find({ blocker: userId })
+      .populate("blockedUser", "fullName email avatar role")
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    const blocked = (blocks || [])
+      .filter((b) => b.blockedUser)
+      .map((b) => ({
+        blockId: b._id,
+        _id: b.blockedUser._id,
+        fullName: b.blockedUser.fullName,
+        email: b.blockedUser.email,
+        avatar: b.blockedUser.avatar,
+        role: b.blockedUser.role,
+        blockedAt: b.updatedAt || b.createdAt,
+      }));
+
+    res.status(200).json({ success: true, blocked });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+

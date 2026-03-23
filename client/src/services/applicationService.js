@@ -60,3 +60,12 @@ export const updateApplicationStatus = async ({ id, status }) => {
   const res = await axiosInstance.put(`/applications/${id}/status`, { status });
   return res.data;
 };
+
+/* =========================================
+   RECRUITER: REMOVE APPLICATION
+   DELETE /api/applications/:id
+========================================= */
+export const removeRecruiterApplication = async (id) => {
+  const res = await axiosInstance.delete(`/applications/${id}`);
+  return res.data;
+};

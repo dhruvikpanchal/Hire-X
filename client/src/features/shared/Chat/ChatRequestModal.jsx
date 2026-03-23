@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   acceptChatRequest,
@@ -8,6 +7,7 @@ import {
   searchUsers,
   sendChatRequest,
 } from "../../../services/chatRequestService";
+import { toPublicUrl } from "../../../utils/mediaUrl.js";
 
 const CloseIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -30,6 +30,16 @@ const initials = (name = "") => {
   return (a + b).toUpperCase() || "U";
 };
 
+function ReqUserAvatar({ user }) {
+  const label = user?.fullName || user?.email || "User";
+  const url = toPublicUrl(user?.avatar);
+  return (
+    <div className="chatreq__avatar" aria-hidden>
+      {url ? <img src={url} alt="" className="chatreq__avatarImg" /> : initials(label)}
+    </div>
+  );
+}
+
 export default function ChatRequestModal({ open, onClose, role, activeOtherUserId, onRequestStateChange }) {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState("send"); // send | received
@@ -41,7 +51,7 @@ export default function ChatRequestModal({ open, onClose, role, activeOtherUserI
     enabled: open,
   });
 
-  const sent = data?.sent || [];
+  const sent = useMemo(() => data?.sent || [], [data]);
   const received = data?.received || [];
 
   const { data: searchData, isLoading: searchLoading } = useQuery({
@@ -84,24 +94,15 @@ export default function ChatRequestModal({ open, onClose, role, activeOtherUserI
 
   const receivedPending = received.filter((r) => r.status === "pending");
 
-  return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
+  return open ? (
+        <div
           className="chatreq"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}
         >
-          <motion.div
+          <div
             className={`chatreq__modal chatreq__modal--${role}`}
-            initial={{ opacity: 0, y: 12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.98 }}
-            transition={{ duration: 0.18 }}
           >
             <div className="chatreq__head">
               <div>
@@ -154,7 +155,7 @@ export default function ChatRequestModal({ open, onClose, role, activeOtherUserI
                       const disabled = isSentPending || isAccepted || sendMut.isPending;
                       return (
                         <div key={u._id} className={`chatreq__row ${isActiveOther ? "chatreq__row--active" : ""}`}>
-                          <div className="chatreq__avatar">{initials(u.fullName || u.email)}</div>
+                          <ReqUserAvatar user={u} />
                           <div className="chatreq__info">
                             <div className="chatreq__name">{u.fullName || u.email}</div>
                             <div className="chatreq__meta">{u.email}</div>
@@ -201,7 +202,7 @@ export default function ChatRequestModal({ open, onClose, role, activeOtherUserI
                       const pending = r.status === "pending";
                       return (
                         <div key={r._id} className="chatreq__row">
-                          <div className="chatreq__avatar">{initials(u?.fullName || u?.email)}</div>
+                          <ReqUserAvatar user={u} />
                           <div className="chatreq__info">
                             <div className="chatreq__name">{u?.fullName || u?.email || "User"}</div>
                             <div className="chatreq__meta">{u?.email}</div>
@@ -241,10 +242,8 @@ export default function ChatRequestModal({ open, onClose, role, activeOtherUserI
             <div className="chatreq__foot">
               <button className="chatreq__btn chatreq__btn--ghost" onClick={onClose}>Close</button>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
+          </div>
+        </div>
+  ) : null;
 }
 

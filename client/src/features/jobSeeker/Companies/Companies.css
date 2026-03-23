@@ -80,45 +80,6 @@
   color: var(--text-light);
 }
 
-/* ── Filters Section ── */
-.companies-filters-section {
-  max-width: var(--container-xl, 1280px);
-  margin: 0 auto;
-  padding: var(--space-2, 2rem) var(--space-lg, 24px);
-}
-
-.industry-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm, 8px);
-  justify-content: center;
-}
-
-.filter-btn {
-  padding: 8px 18px;
-  border-radius: var(--radius-full);
-  background-color: var(--bg-card);
-  border: var(--border-strong);
-  color: var(--text-muted);
-  font-family: inherit;
-  font-size: var(--font-size-sm-plus);
-  font-weight: var(--fw-medium);
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-
-.filter-btn:hover {
-  background-color: var(--color-slate-50);
-  color: var(--text-main);
-  border-color: var(--text-light);
-}
-
-.filter-btn.active {
-  background-color: var(--primary);
-  color: var(--text-white);
-  border-color: var(--primary);
-  box-shadow: var(--shadow-primary-sm);
-}
 
 /* ── Main Content Section ── */
 .companies-list-section {
@@ -295,7 +256,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 0;
+  padding: 12px;
   border-radius: var(--radius-lg);
   background-color: var(--color-primary-05);
   color: var(--primary);
@@ -369,12 +330,6 @@
   border-color: rgba(239, 68, 68, 0.25);
 }
 
-/* Selected card */
-.company-card-selected {
-  border-color: var(--primary);
-  box-shadow: var(--shadow-box-hover-2);
-}
-
 .company-logo-img {
   width: 100%;
   height: 100%;
@@ -426,23 +381,89 @@
   background: var(--bg-muted);
 }
 
-/* Company details panel (Naukri-style) */
-.company-details-panel {
-  margin-top: var(--space-2, 2rem);
+/* Company jobs modal */
+.company-jobs-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(16px, env(safe-area-inset-top)) 16px 16px;
+  animation: companies-modal-fade-in 0.2s ease-out;
+}
+
+@keyframes companies-modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.company-jobs-modal {
+  width: min(920px, 100%);
+  max-height: min(88vh, 860px);
+  display: flex;
+  flex-direction: column;
   background: var(--bg-card);
   border: var(--border-strong);
   border-radius: var(--radius-xl);
-  padding: 22px 22px;
-  box-shadow: var(--shadow-company-card);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: companies-modal-pop 0.25s ease-out;
 }
 
-.company-details-head {
+@keyframes companies-modal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.company-jobs-modal-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
+  gap: 16px;
+  padding: 20px 22px;
+  border-bottom: var(--border-subtle-solid);
+  flex-shrink: 0;
+}
+
+.company-jobs-modal-close {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-12);
+  border: var(--border-strong);
+  background: var(--bg-body);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.company-jobs-modal-close:hover {
+  background: var(--bg-muted);
+  color: var(--text-main);
+  border-color: var(--text-light);
+}
+
+.company-jobs-modal-body {
+  padding: 18px 22px 24px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .company-details-title h2 {
@@ -602,6 +623,9 @@
   margin-top: 14px;
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .company-apply-btn {
@@ -632,7 +656,7 @@
   background: var(--success);
 }
 
-/* Apply modal */
+/* Apply modal (above company jobs modal) */
 .apply-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -641,7 +665,7 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  z-index: 999;
+  z-index: 1100;
 }
 
 .apply-modal {

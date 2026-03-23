@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom"; // ✅ ADD useLocation
-import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { Eye, EyeOff, Lock, ArrowLeft } from "lucide-react";
@@ -36,10 +35,7 @@ const ResetPassword = () => {
     messages.forEach((msg, index) => {
       toast.custom(
         (t) => (
-          <motion.div
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: t.visible ? 1 : 0, x: t.visible ? 0 : 200 }}
-            transition={{ duration: 0.1 }}
+          <div
             style={{
               background: "#ef4444",
               color: "#fff",
@@ -50,7 +46,7 @@ const ResetPassword = () => {
             }}
           >
             {msg}
-          </motion.div>
+          </div>
         ),
         {
           duration: 2500 + index * 150,
@@ -96,11 +92,8 @@ const ResetPassword = () => {
 
   return (
     <div className="reset-password-page">
-      <motion.div
+      <div
         className="reset-card"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
       >
         {/* Logo */}
         <Link to="/">
@@ -179,15 +172,13 @@ const ResetPassword = () => {
             </div>
           </div>
 
-          <motion.button
+          <button
             type="submit"
             className="btn-submit"
             disabled={loading}
-            whileHover={{ scale: 1.02, y: -1 }}
-            whileTap={{ scale: 0.98 }}
           >
             {loading ? "Updating..." : "Reset Password"}
-          </motion.button>
+          </button>
 
           <div className="form-footer-links">
             <Link to="/login" className="back-link">
@@ -195,7 +186,7 @@ const ResetPassword = () => {
             </Link>
           </div>
         </form>
-      </motion.div>
+      </div>
     </div>
   );
 };

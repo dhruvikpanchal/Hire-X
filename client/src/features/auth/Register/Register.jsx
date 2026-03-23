@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import {
   Eye,
   EyeOff,
@@ -31,7 +30,6 @@ const Register = () => {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm({
     mode: "onSubmit",
@@ -52,7 +50,8 @@ const Register = () => {
     },
     onError: (error) => {
       // Parse detailed error object returned by fastify/express natively
-      const errMessage = error.response?.data?.message || "Registration failed!";
+      const errMessage =
+        error.response?.data?.message || "Registration failed!";
       console.error("Registration validation failed:", errMessage);
       toast.error(errMessage);
     },
@@ -60,6 +59,11 @@ const Register = () => {
 
   // Submit Handler
   const onSubmit = (data) => {
+    if (data.password !== data.confirmPassword) {
+      toast.error("Passwords mismatch");
+      return;
+    }
+
     console.log("FORM DATA:", data);
 
     registerMutation.mutate({
@@ -77,10 +81,7 @@ const Register = () => {
     messages.forEach((msg, index) => {
       toast.custom(
         (t) => (
-          <motion.div
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: t.visible ? 1 : 0, x: t.visible ? 0 : 200 }}
-            transition={{ duration: 0.1 }}
+          <div
             style={{
               background: "#ef4444",
               color: "#fff",
@@ -91,12 +92,12 @@ const Register = () => {
             }}
           >
             {msg}
-          </motion.div>
+          </div>
         ),
         {
           duration: 2500 + index * 150, // staggered duration prevents overlapping glitch
           position: "top-right",
-        }
+        },
       );
     });
   };
@@ -215,8 +216,6 @@ const Register = () => {
                   placeholder="••••••••"
                   {...register("confirmPassword", {
                     required: "Confirm password required",
-                    validate: (value) =>
-                      value === watch("password") || "Passwords mismatch",
                   })}
                 />
                 <button
@@ -238,26 +237,22 @@ const Register = () => {
           <div className="form-group">
             <label>I am a</label>
             <div className="role-selector">
-              <motion.button
+              <button
                 type="button"
                 className={`role-option ${selectedRole === "jobseeker" ? "active" : ""}`}
                 onClick={() => setSelectedRole("jobseeker")}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
               >
                 <Briefcase size={18} />
                 <span>Job Seeker</span>
-              </motion.button>
-              <motion.button
+              </button>
+              <button
                 type="button"
-                className={`role-option ${selectedRole === "employer" ? "active" : ""}`}
-                onClick={() => setSelectedRole("employer")}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                className={`role-option ${selectedRole === "recruiter" ? "active" : ""}`}
+                onClick={() => setSelectedRole("recruiter")}
               >
                 <Building2 size={18} />
-                <span>Employer</span>
-              </motion.button>
+                <span>Recruiter</span>
+              </button>
             </div>
           </div>
 
@@ -280,7 +275,7 @@ const Register = () => {
           </div>
 
           {/* Submit Button */}
-          <motion.button
+          <button
             type="submit"
             className="btn-submit"
             disabled={registerMutation.isPending}
@@ -288,7 +283,7 @@ const Register = () => {
             {registerMutation.isPending
               ? "Creating Account..."
               : "Create Account"}
-          </motion.button>
+          </button>
 
           {/* Sign In Link */}
           <div className="form-footer">

@@ -20,8 +20,11 @@ export const createJob = async (jobData) => {
 export const getAllJobs = async (params = {}) => {
     try {
         const res = await axiosInstance.get("/jobs", { params });
-        // backend returns: { success, jobs, ... }
-        return res.data?.jobs || [];
+        const body = res.data;
+        const raw = body?.jobs ?? body?.data;
+        if (Array.isArray(raw)) return raw;
+        if (raw && typeof raw === "object" && (raw._id || raw.jobTitle)) return [raw];
+        return [];
     } catch (error) {
         console.error("Get Jobs Error:", error.response?.data || error.message);
         throw error;

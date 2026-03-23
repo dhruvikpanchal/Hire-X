@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   ArrowRight,
   User,
@@ -6,23 +5,21 @@ import {
   Search,
   Send,
   Star,
-  CheckCircle,
   Clock,
   MapPin,
   Briefcase,
   Quote,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // import files
 import {
   stats,
-  categories,
   companies,
   testimonials,
 } from "../../../../utils/data/content.js";
 import { jobs, popularVacancies } from "../../../../utils/data/jobs.js";
 import "./HomeSections.css";
-import { Image } from "../../../../utils/image_paths.js";
 
 // --- Components ---
 
@@ -31,17 +28,13 @@ export const Statistics = () => {
     <section className="stats-section section">
       <div className="container stats-grid">
         {stats.map((stat, index) => (
-          <motion.div
+          <div
             key={stat.id}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: index * 0.1 }}
             className="stat-card"
           >
             <h3 className="stat-value">{stat.value}</h3>
             <p className="stat-label">{stat.label}</p>
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>
@@ -49,6 +42,8 @@ export const Statistics = () => {
 };
 
 export const PopularVacancies = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="section bg-white">
       <div className="container">
@@ -59,16 +54,23 @@ export const PopularVacancies = () => {
 
         <div className="vacancies-grid">
           {popularVacancies.map((item, index) => (
-            <motion.div
+            <div
               key={index}
               className="vacancy-item"
-              whileHover={{ scale: 1.02 }}
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate(`/jobs?search=${encodeURIComponent(item.role)}`)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  navigate(`/jobs?search=${encodeURIComponent(item.role)}`);
+                }
+              }}
             >
               <div className="vacancy-info">
                 <h4>{item.role}</h4>
                 <span>{item.open} Open Positions</span>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
@@ -151,61 +153,9 @@ export const HowItWorks = () => {
   );
 };
 
-export const PopularCategories = () => {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, scale: 0.9, y: 20 },
-    visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.4 } },
-  };
-
-  return (
-    <section className="section bg-light">
-      <div className="container">
-        <h2 className="section-title">Popular Categories</h2>
-        <p className="section-subtitle">
-          Browse through our most active job categories and find your specialty.
-        </p>
-        <motion.div
-          className="categories-grid"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-        >
-          {categories.map((cat, index) => (
-            <motion.div
-              key={cat.id}
-              className="category-card"
-              variants={itemVariants}
-            >
-              <div className={`cat-icon-container ${cat.color}`}>
-                <cat.icon size={28} />
-                <div className="cat-dot"></div>
-              </div>
-              <div className="cat-content">
-                <h3>{cat.name}</h3>
-                <p>{cat.count} Vacancies</p>
-              </div>
-              <div className="cat-footer">
-                <span className="explore-text">Explore Jobs</span>
-                <ArrowRight className="cat-arrow" size={18} />
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
-    </section>
-  );
-};
-
 export const FeaturedJobs = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="featured-jobs">
       <div className="container">
@@ -216,7 +166,7 @@ export const FeaturedJobs = () => {
             <p>Explore opportunities from trusted companies.</p>
           </div>
 
-          <button className="view-all-btn">
+          <button className="view-all-btn" type="button" onClick={() => navigate("/jobs")}>
             View All <ArrowRight size={18} />
           </button>
         </div>
@@ -251,75 +201,13 @@ export const FeaturedJobs = () => {
               </div>
 
               <div className="job-col action">
-                <button className="apply-btn">Apply</button>
+                <button className="apply-btn" type="button" onClick={() => navigate("/login")}>
+                  Apply
+                </button>
               </div>
             </div>
           ))}
         </div>
-      </div>
-    </section>
-  );
-};
-
-export const TopCompanies = () => {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.4 } },
-  };
-
-  return (
-    <section className="section bg-light companies-section">
-      <div className="container">
-        <h2 className="section-title">Top Hiring Companies</h2>
-        <p className="section-subtitle">
-          Work with the world's most innovative brands and fast-growing
-          startups.
-        </p>
-
-        <motion.div
-          className="companies-grid"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-        >
-          {companies.map((company) => (
-            <motion.div
-              key={company.id}
-              className="company-card"
-              variants={itemVariants}
-              whileHover={{ y: -10 }}
-            >
-              <div className="company-logo-lg-wrapper">
-                <img
-                  src={company.logo}
-                  alt={company.name}
-                  className="company-logo-lg"
-                />
-              </div>
-              <h3>{company.name}</h3>
-              <p className="location">
-                <MapPin size={14} /> {company.location}
-              </p>
-              <div className="company-stats">
-                <span className="open-positions">
-                  {company.openPositions} Open Positions
-                </span>
-              </div>
-              <button className="btn btn-ghost-primary text-sm">
-                View Jobs
-              </button>
-            </motion.div>
-          ))}
-        </motion.div>
       </div>
     </section>
   );
@@ -353,19 +241,13 @@ export const Testimonials = () => {
           our platform.
         </p>
 
-        <motion.div
+        <div
           className="testimonials-grid"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
         >
           {testimonials.map((t) => (
-            <motion.div
+            <div
               key={t.id}
               className="testimonial-card"
-              variants={itemVariants}
-              whileHover={{ y: -8 }}
             >
               <div className="quote-icon-bg">
                 <Quote className="quote-icon" fill="currentColor" />
@@ -394,35 +276,11 @@ export const Testimonials = () => {
                   <span>{t.role}</span>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
 };
 
-export const CallToAction = () => {
-  return (
-    <section className="section cta-section">
-      <div className="container cta-grid">
-        <div className="cta-card candidate">
-          <div className="content">
-            <h2>Become a Candidate</h2>
-            <p>Register and find your dream job today.</p>
-            <button className="btn btn-white">Register Now</button>
-          </div>
-          <img src={Image.candidateCta} alt="Candidate" className="cta-img" />
-        </div>
-        <div className="cta-card employer">
-          <div className="content">
-            <h2>Become an Employer</h2>
-            <p>Post jobs and hire the best talent.</p>
-            <button className="btn btn-white">Post a Job</button>
-          </div>
-          <img src={Image.employerCta} alt="Employer" className="cta-img" />
-        </div>
-      </div>
-    </section>
-  );
-};

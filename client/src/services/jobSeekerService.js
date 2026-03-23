@@ -161,3 +161,21 @@ export const getJobSeekerDashboard = async () => {
     const res = await axiosInstance.get("/jobseekers/me/dashboard");
     return res.data;
 };
+
+/* =========================================
+   SAVED JOBS
+========================================= */
+export const getMySavedJobs = async () => {
+    const res = await axiosInstance.get("/jobseekers/me/saved-jobs");
+    return res.data;
+};
+
+export const saveJobForSeeker = async (jobId) => {
+    const res = await axiosInstance.post("/jobseekers/me/saved-jobs", { jobId });
+    return res.data;
+};
+
+export const unsaveJobForSeeker = async (jobId) => {
+    const res = await axiosInstance.delete(`/jobseekers/me/saved-jobs/${jobId}`);
+    return res.data;
+};

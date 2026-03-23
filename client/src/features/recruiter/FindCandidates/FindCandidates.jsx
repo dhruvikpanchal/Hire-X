@@ -274,7 +274,7 @@ export default function FindCandidates() {
       }),
   });
 
-  const candidates = data?.candidates ?? [];
+  const candidates = useMemo(() => data?.candidates ?? [], [data]);
   const withResume = useMemo(
     () => candidates.filter((c) => c?.resumeUrl).length,
     [candidates]

@@ -30,3 +30,8 @@ export const unblockUser = async (blockedUserId) => {
   return res.data;
 };
 
+export const getBlockedUsers = async () => {
+  const res = await axiosInstance.get("/messages/blocked");
+  return res.data;
+};
+

@@ -44,7 +44,7 @@ export default function RecruiterDashboard() {
 
   const recruiter          = data?.recruiter || null;
   const user               = recruiter?.user || null;
-  const stats              = data?.stats || { jobsPosted: 0, activeJobs: 0, totalApplications: 0, pendingApplications: 0 };
+  const stats              = useMemo(() => data?.stats || { jobsPosted: 0, activeJobs: 0, totalApplications: 0, pendingApplications: 0 }, [data]);
   const recentJobs         = data?.recentJobs || [];
   const recentApplications = data?.recentApplications || [];
 

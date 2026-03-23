@@ -3,7 +3,6 @@ import toast from "react-hot-toast";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ChevronDown, Menu, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { getMyRecruiterProfile } from "../../../services/recruiterService.js";
 import { Image } from "../../../utils/image_paths.js";
@@ -31,7 +30,7 @@ const RecruiterNavbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [avatarBroken, setAvatarBroken] = useState(false);
+  const [brokenAvatarUrl, setBrokenAvatarUrl] = useState("");
 
   const { data } = useQuery({
     queryKey: ["recruiterProfile"],
@@ -47,7 +46,7 @@ const RecruiterNavbar = () => {
   }, [user]);
 
   const avatarUrl = useMemo(() => toPublicUrl(user?.avatar), [user?.avatar]);
-  const showImage = !!avatarUrl && !avatarBroken;
+  const showImage = !!avatarUrl && brokenAvatarUrl !== avatarUrl;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -63,10 +62,6 @@ const RecruiterNavbar = () => {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  useEffect(() => {
-    setAvatarBroken(false);
-  }, [avatarUrl]);
-
   const handleLogout = async () => {
     await authService.logout();
     toast.success("Logged out successfully");
@@ -80,30 +75,25 @@ const RecruiterNavbar = () => {
   };
 
   return (
-    <motion.nav
-      className={`navbar ${scrolled ? "scrolled" : ""}`}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-    >
+    <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
       <div className="navbar-glass-bg" />
       <div className="container navbar-container">
         <Link to="/recruiter/dashboard">
-          <motion.div className="logo" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <div className="logo">
             <img src={Image.logo} alt="logo" className="logo-icon" />
             <span className="logo-text">Hire X</span>
-          </motion.div>
+          </div>
         </Link>
 
         <div className="nav-center hidden-mobile">
           <ul className="nav-links">
-            <li><Link to="/recruiter/home"><motion.div className={`nav-link ${location.pathname === "/recruiter/home" ? "active" : ""}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>Home</motion.div></Link></li>
-            <li><Link to="/recruiter/dashboard"><motion.div className={`nav-link ${location.pathname === "/recruiter/dashboard" ? "active" : ""}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>Dashboard</motion.div></Link></li>
-            <li><Link to="/recruiter/findCandidates"><motion.div className={`nav-link ${location.pathname === "/recruiter/findCandidates" ? "active" : ""}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>Find Candidates</motion.div></Link></li>
-            <li><Link to="/recruiter/Post"><motion.div className={`nav-link ${location.pathname === "/recruiter/Post" ? "active" : ""}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>Post</motion.div></Link></li>
-            <li><Link to="/recruiter/my-jobs"><motion.div className={`nav-link ${location.pathname === "/recruiter/my-jobs" ? "active" : ""}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>My Jobs</motion.div></Link></li>
-            <li><Link to="/recruiter/applications"><motion.div className={`nav-link ${location.pathname === "/recruiter/applications" ? "active" : ""}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>Applications</motion.div></Link></li>
-            <li><Link to="/recruiter/messages"><motion.div className={`nav-link ${location.pathname === "/recruiter/messages" ? "active" : ""}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>Messages</motion.div></Link></li>
+            <li><Link to="/recruiter/dashboard"><div className={`nav-link ${location.pathname === "/recruiter/dashboard" ? "active" : ""}`}>Dashboard</div></Link></li>
+            <li><Link to="/recruiter/feed"><div className={`nav-link ${location.pathname === "/recruiter/feed" ? "active" : ""}`}>Feed</div></Link></li>
+            <li><Link to="/recruiter/findCandidates"><div className={`nav-link ${location.pathname === "/recruiter/findCandidates" ? "active" : ""}`}>Find Candidates</div></Link></li>
+            <li><Link to="/recruiter/Post"><div className={`nav-link ${location.pathname === "/recruiter/Post" ? "active" : ""}`}>Post</div></Link></li>
+            <li><Link to="/recruiter/my-jobs"><div className={`nav-link ${location.pathname === "/recruiter/my-jobs" ? "active" : ""}`}>My Jobs</div></Link></li>
+            <li><Link to="/recruiter/applications"><div className={`nav-link ${location.pathname === "/recruiter/applications" ? "active" : ""}`}>Applications</div></Link></li>
+            <li><Link to="/recruiter/messages"><div className={`nav-link ${location.pathname === "/recruiter/messages" ? "active" : ""}`}>Messages</div></Link></li>
           </ul>
         </div>
 
@@ -121,7 +111,7 @@ const RecruiterNavbar = () => {
                   src={avatarUrl}
                   alt={displayName}
                   className="navbar-avatar"
-                  onError={() => setAvatarBroken(true)}
+                  onError={() => setBrokenAvatarUrl(avatarUrl)}
                 />
               ) : (
                 <span className="navbar-avatar navbar-avatar-fallback">{initialsFromName(displayName)}</span>
@@ -130,47 +120,30 @@ const RecruiterNavbar = () => {
               <ChevronDown size={16} className={`navbar-profile-caret ${profileOpen ? "rotated" : ""}`} />
             </button>
 
-            <AnimatePresence>
-              {profileOpen && (
-                <motion.div
-                  className="navbar-dropdown navbar-dropdown-menu"
-                  initial={{ opacity: 0, y: 6, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 6, scale: 0.98 }}
-                  transition={{ duration: 0.18, ease: "easeOut" }}
-                >
+            {profileOpen && (
+                <div className="navbar-dropdown navbar-dropdown-menu">
                   <button onClick={() => { navigate("/recruiter/profile"); closeMenus(); }}>Profile</button>
-                  <button onClick={() => { navigate("/recruiter/pricing"); closeMenus(); }}>Plans</button>
                   <button onClick={handleLogout} className="navbar-logout-btn">Logout</button>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
           </div>
         </div>
 
-        <motion.button
+        <button
           className="mobile-toggle"
           onClick={() => setMobileMenuOpen((v) => !v)}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
           aria-label="Toggle menu"
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </motion.button>
+        </button>
       </div>
 
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            className="mobile-menu"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+      {mobileMenuOpen && (
+          <div className="mobile-menu">
             <div className="mobile-menu-content">
               <ul className="mobile-nav-links">
                 <li><Link to="/recruiter/dashboard" className={`mobile-nav-link ${location.pathname === "/recruiter/dashboard" ? "active" : ""}`} onClick={closeMenus}>Dashboard</Link></li>
+                <li><Link to="/recruiter/feed" className={`mobile-nav-link ${location.pathname === "/recruiter/feed" ? "active" : ""}`} onClick={closeMenus}>Feed</Link></li>
                 <li><Link to="/recruiter/Post" className={`mobile-nav-link ${location.pathname === "/recruiter/Post" ? "active" : ""}`} onClick={closeMenus}>Post Job</Link></li>
                 <li><Link to="/recruiter/my-jobs" className={`mobile-nav-link ${location.pathname === "/recruiter/my-jobs" ? "active" : ""}`} onClick={closeMenus}>My Jobs</Link></li>
                 <li><Link to="/recruiter/applications" className={`mobile-nav-link ${location.pathname === "/recruiter/applications" ? "active" : ""}`} onClick={closeMenus}>Applications</Link></li>
@@ -181,14 +154,12 @@ const RecruiterNavbar = () => {
               <div className="mobile-divider" />
               <div className="mobile-actions">
                 <button className="mobile-profile-btn" onClick={() => { navigate("/recruiter/profile"); closeMenus(); }}>Profile</button>
-                <button className="mobile-profile-btn" onClick={() => { navigate("/recruiter/pricing"); closeMenus(); }}>Plans</button>
                 <button onClick={handleLogout} className="mobile-logout-btn">Logout</button>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
-    </motion.nav>
+    </nav>
   );
 };
 

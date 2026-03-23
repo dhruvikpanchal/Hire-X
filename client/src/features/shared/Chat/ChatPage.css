@@ -92,6 +92,51 @@
   font-size: 0.85rem;
 }
 
+.chat__sidebarTabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.chat__tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 10px;
+  border-radius: 12px;
+  border: 1.5px solid var(--c-border);
+  background: var(--c-card);
+  color: var(--c-muted);
+  font-weight: 800;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+
+.chat__tab--active {
+  border-color: rgba(37, 99, 235, 0.35);
+  background: rgba(37, 99, 235, 0.10);
+  color: var(--c-blue-700);
+}
+
+.chat--recruiter .chat__tab--active {
+  border-color: rgba(124, 58, 237, 0.35);
+  background: rgba(124, 58, 237, 0.12);
+  color: #5b21b6;
+}
+
+.chat__tabBadge {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #b91c1c;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
 .chat__search {
   margin-top: 14px;
   position: relative;
@@ -167,6 +212,51 @@
   font-weight: 700;
   font-size: 0.85rem;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.chat__avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.chat__avatar--sm {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+}
+
+.chat__avatar--xs {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+}
+
+.chat__avatar--header {
+  background: rgba(37, 99, 235, 0.12);
+  border: 1.5px solid rgba(37, 99, 235, 0.22);
+  color: var(--c-blue-700);
+}
+
+.chat__avatar--header:has(.chat__avatarImg) {
+  background: var(--c-card);
+  border-color: var(--c-border);
+  padding: 0;
+}
+
+.chat--recruiter .chat__avatar--header {
+  background: rgba(124, 58, 237, 0.12);
+  border-color: rgba(124, 58, 237, 0.22);
+  color: #5b21b6;
+}
+
+.chat--recruiter .chat__avatar--header:has(.chat__avatarImg) {
+  background: var(--c-card);
+  border-color: var(--c-border);
 }
 
 .chat__convoMain {
@@ -205,6 +295,76 @@
   text-overflow: ellipsis;
 }
 
+.chat__blockedPanel {
+  padding: 4px 8px 12px;
+}
+
+.chat__blockedList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.chat__blockedRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px;
+  border-radius: 14px;
+  border: 1.5px solid var(--c-border);
+  background: var(--c-card);
+  margin-bottom: 8px;
+}
+
+.chat__blockedInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat__blockedName {
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: var(--c-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat__blockedMeta {
+  font-size: 0.75rem;
+  color: var(--c-muted);
+  margin-top: 2px;
+}
+
+.chat__blockedUnblock {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(37, 99, 235, 0.25);
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--c-blue-700);
+  font-weight: 800;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: transform 0.18s, background 0.18s;
+}
+
+.chat__blockedUnblock:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(37, 99, 235, 0.14);
+}
+
+.chat__blockedUnblock:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.chat--recruiter .chat__blockedUnblock {
+  border-color: rgba(124, 58, 237, 0.28);
+  background: rgba(124, 58, 237, 0.10);
+  color: #5b21b6;
+}
+
 .chat__empty {
   padding: 18px 12px;
   text-align: center;
@@ -220,6 +380,10 @@
 .chat__emptyDesc {
   margin: 6px 0 0;
   font-size: 0.86rem;
+}
+
+.chat__empty--tight {
+  padding: 14px 10px;
 }
 
 .chat__main {
@@ -252,20 +416,6 @@
   min-width: 0;
 }
 
-.chat__headerAvatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
-  background: rgba(37, 99, 235, 0.12);
-  border: 1.5px solid rgba(37, 99, 235, 0.22);
-  color: var(--c-blue-700);
-  font-family: var(--c-mono);
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
 
 .chat__headerName {
   font-weight: 900;
@@ -350,8 +500,9 @@
 }
 
 .chat__body {
+  height: 500px;        /* fixed chat area height */
+  overflow-y: auto;
   padding: 16px 16px;
-  overflow: auto;
   background: radial-gradient(circle at 85% 20%, rgba(37, 99, 235, 0.06), transparent 55%),
     radial-gradient(circle at 15% 85%, rgba(99, 102, 241, 0.05), transparent 55%),
     var(--c-bg);
@@ -360,11 +511,18 @@
 .chat__msgRow {
   display: flex;
   justify-content: flex-start;
+  align-items: flex-end;
+  gap: 8px;
   margin: 10px 0;
 }
 
 .chat__msgRow--me {
   justify-content: flex-end;
+}
+
+.chat__msgAvatar {
+  flex-shrink: 0;
+  align-self: flex-end;
 }
 
 .chat__bubble {
@@ -745,6 +903,14 @@
   background: rgba(37, 99, 235, 0.12);
   color: #1d4ed8;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.chatreq__avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .chat--recruiter .chatreq__avatar {

@@ -6,12 +6,14 @@ import {
   sendMessage,
   blockUser,
   unblockUser,
+  getBlockedUsers,
 } from "../controllers/message.Controller.js";
 
 const router = express.Router();
 
 router.use(authMiddleware);
 
+router.get("/blocked", getBlockedUsers);
 router.get("/conversations", getConversations);
 router.get("/conversations/:conversationId", getMessagesByConversation);
 router.post("/send", sendMessage);

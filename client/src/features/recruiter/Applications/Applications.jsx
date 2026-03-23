@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import "./Applications.css";
 import {
   getRecruiterApplications,
   updateApplicationStatus,
+  removeRecruiterApplication,
 } from "../../../services/applicationService";
 
 const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
@@ -60,6 +60,14 @@ const XCircleIcon = () => (
     <line x1="9" y1="9" x2="15" y2="15" />
   </svg>
 );
+const TrashIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    <path d="M10 11v6M14 11v6" />
+    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+  </svg>
+);
 const MessageIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -112,7 +120,7 @@ export default function Applications() {
     queryFn: getRecruiterApplications,
   });
 
-  const raw = data?.applications || [];
+  const raw = useMemo(() => data?.applications || [], [data]);
 
   const applications = useMemo(() => {
     const mapStatus = (s) => {
@@ -182,6 +190,19 @@ export default function Applications() {
     },
     onError: (err) => {
       const msg = err?.response?.data?.message || err?.message || "Failed to update status.";
+      setToast({ type: "error", message: msg });
+      setTimeout(() => setToast({ type: "", message: "" }), 3200);
+    },
+  });
+  const removeMutation = useMutation({
+    mutationFn: (id) => removeRecruiterApplication(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recruiterApplications"] });
+      setToast({ type: "success", message: "Application removed." });
+      setTimeout(() => setToast({ type: "", message: "" }), 2200);
+    },
+    onError: (err) => {
+      const msg = err?.response?.data?.message || err?.message || "Failed to remove application.";
       setToast({ type: "error", message: msg });
       setTimeout(() => setToast({ type: "", message: "" }), 3200);
     },
@@ -387,41 +408,32 @@ export default function Applications() {
         )}
 
         {!isLoading && !isError && filtered.length > 0 && (
-          <motion.div
+          <div
             className="recruiter-applications-list"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.25 }}
           >
-            <AnimatePresence initial={false}>
               {filtered.map((app) => (
                 <AppCard
                   key={app.id}
                   app={app}
                   onAccept={() => accept(app.id)}
                   onReject={() => reject(app.id)}
-                  busy={statusMutation.isPending}
+                  onRemove={() => removeMutation.mutate(app.id)}
+                  busy={statusMutation.isPending || removeMutation.isPending}
                 />
               ))}
-            </AnimatePresence>
-          </motion.div>
+          </div>
         )}
       </div>
     </div>
   );
 }
 
-function AppCard({ app, onAccept, onReject, busy }) {
+function AppCard({ app, onAccept, onReject, onRemove, busy }) {
   const meta = STATUS_META[app.status] || STATUS_META.Pending;
 
   return (
-    <motion.article
+    <article
       className="recruiter-applications-card"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 10 }}
-      transition={{ duration: 0.25 }}
-      whileHover={{ y: -2 }}
     >
       <div className="rac-avatar-col">
         <div className="rac-avatar" style={{ background: app.avatarColor }}>
@@ -470,6 +482,15 @@ function AppCard({ app, onAccept, onReject, busy }) {
           <XCircleIcon />
           <span>{app.status === "Rejected" ? "Rejected" : "Reject"}</span>
         </button>
+        <button
+          className="ra-action ra-act-rej"
+          onClick={onRemove}
+          disabled={busy}
+          title="Remove"
+        >
+          <TrashIcon />
+          <span>Remove</span>
+        </button>
         {app.resumeUrl ? (
           <a className="ra-action ra-act-dl" href={app.resumeUrl} target="_blank" rel="noreferrer" title="Open Resume">
             <DownloadIcon />
@@ -482,6 +503,6 @@ function AppCard({ app, onAccept, onReject, busy }) {
           </button>
         )}
       </div>
-    </motion.article>
+    </article>
   );
 }

@@ -1,6 +1,7 @@
 import Application from "../models/Application.js";
 import Job from "../models/Job.js";
 import JobSeeker from "../models/JobSeeker.js";
+import Recruiter from "../models/Recruiter.js";
 
 // @desc Apply to a job
 // @route POST /api/applications
@@ -112,9 +113,35 @@ const getMyApplications = async (req, res) => {
 const getMyApplicationsV2 = async (req, res) => {
     try {
         const applications = await Application.find({ seeker: req.user.id })
-            .populate("job", "jobTitle company location jobType status salaryMin salaryMax")
+            .populate("job", "jobTitle company location jobType status salaryMin salaryMax skills recruiter")
             .sort({ createdAt: -1 })
             .lean();
+
+        const userIds = [
+            ...new Set(
+                applications
+                    .map((a) => a.job?.recruiter)
+                    .filter(Boolean)
+                    .map((id) => id.toString()),
+            ),
+        ];
+
+        let userIdToRecruiterProfileId = new Map();
+        if (userIds.length) {
+            const recruiters = await Recruiter.find({ user: { $in: userIds } })
+                .select("_id user")
+                .lean();
+            userIdToRecruiterProfileId = new Map(
+                recruiters.map((r) => [r.user.toString(), r._id.toString()]),
+            );
+        }
+
+        applications.forEach((a) => {
+            if (a.job?.recruiter) {
+                const uid = a.job.recruiter.toString();
+                a.job.recruiterProfileId = userIdToRecruiterProfileId.get(uid) || null;
+            }
+        });
 
         res.status(200).json({
             success: true,
@@ -252,11 +279,51 @@ const updateApplicationStatus = async (req, res) => {
     }
 };
 
+// @desc Remove application by recruiter
+// @route DELETE /api/applications/:id
+// @access Private (recruiter only)
+const removeApplicationByRecruiter = async (req, res) => {
+    try {
+        const application = await Application.findById(req.params.id).populate("job");
+
+        if (!application) {
+            return res.status(404).json({
+                success: false,
+                message: "Application not found"
+            });
+        }
+
+        if (!application.job || application.job.recruiter.toString() !== req.user.id) {
+            return res.status(403).json({
+                success: false,
+                message: "Not authorized to remove this application"
+            });
+        }
+
+        await Job.findByIdAndUpdate(application.job._id, {
+            $pull: { applicants: application._id }
+        });
+        await Application.findByIdAndDelete(application._id);
+
+        return res.status(200).json({
+            success: true,
+            message: "Application removed successfully"
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: error.message
+        });
+    }
+};
+
 export {
     applyToJob,
     getMyApplications,
     getJobApplications,
     getRecruiterApplications,
     getMyApplicationsV2,
-    updateApplicationStatus
+    updateApplicationStatus,
+    removeApplicationByRecruiter
 };

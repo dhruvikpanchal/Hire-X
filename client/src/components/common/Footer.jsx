@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   Facebook,
   Twitter,
@@ -59,13 +58,7 @@ const Footer = () => {
         <div className="container">
           <div className="footer-grid">
             {/* Brand Column */}
-            <motion.div
-              className="footer-col brand-col"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
+            <div className="footer-col brand-col">
               <div className="footer-logo">
                 <div className="logo-icon-wrapper">
                   <img src={Image.logo} alt="Logo" className="logo-icon" />
@@ -94,28 +87,20 @@ const Footer = () => {
 
               <div className="footer-socials">
                 {socialLinks.map((social, index) => (
-                  <motion.a
+                  <a
                     key={index}
                     href={social.href}
                     className="social-link"
                     aria-label={social.label}
-                    whileHover={{ scale: 1.1, y: -3 }}
-                    whileTap={{ scale: 0.95 }}
                   >
                     <social.icon size={18} />
-                  </motion.a>
+                  </a>
                 ))}
               </div>
-            </motion.div>
+            </div>
 
             {/* Quick Links */}
-            <motion.div
-              className="footer-col"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
+            <div className="footer-col">
               <h4 className="footer-heading">Quick Links</h4>
               <ul className="footer-links">
                 {footerLinks.quickLinks.map((link, index) => (
@@ -127,16 +112,10 @@ const Footer = () => {
                   </li>
                 ))}
               </ul>
-            </motion.div>
+            </div>
 
             {/* For Employers */}
-            <motion.div
-              className="footer-col"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
+            <div className="footer-col">
               <h4 className="footer-heading">For Employers</h4>
               <ul className="footer-links">
                 {footerLinks.forEmployers.map((link, index) => (
@@ -148,16 +127,10 @@ const Footer = () => {
                   </li>
                 ))}
               </ul>
-            </motion.div>
+            </div>
 
             {/* Resources */}
-            <motion.div
-              className="footer-col"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
+            <div className="footer-col">
               <h4 className="footer-heading">Resources</h4>
               <ul className="footer-links">
                 {footerLinks.resources.map((link, index) => (
@@ -169,7 +142,7 @@ const Footer = () => {
                   </li>
                 ))}
               </ul>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

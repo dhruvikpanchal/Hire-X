@@ -1,8 +1,10 @@
+import mongoose from "mongoose";
 import JobSeeker from "../models/JobSeeker.js";
 import User from "../models/User.js";
 import Application from "../models/Application.js";
 import SavedJob from "../models/SavedJob.js";
 import JobAlert from "../models/JobAlert.js";
+import Job from "../models/Job.js";
 
 /* =========================================================
    GET MY PROFILE
@@ -577,6 +579,96 @@ const getJobSeekerDashboard = async (req, res) => {
     }
 };
 
+/* =========================================================
+   SAVED JOBS
+   GET  /api/jobseekers/me/saved-jobs
+   POST /api/jobseekers/me/saved-jobs   body: { jobId }
+   DELETE /api/jobseekers/me/saved-jobs/:jobId
+========================================================= */
+const getMySavedJobs = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const rows = await SavedJob.find({ seeker: userId })
+            .populate({
+                path: "job",
+                select: "jobTitle company location jobType salaryMin salaryMax createdAt status skills description",
+            })
+            .sort({ updatedAt: -1 })
+            .lean();
+
+        const savedJobs = (rows || [])
+            .filter((r) => r.job)
+            .map((r) => ({
+                _id: r._id,
+                savedAt: r.createdAt,
+                job: r.job,
+            }));
+
+        return res.status(200).json({ success: true, savedJobs });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Server error fetching saved jobs",
+            error: error.message,
+        });
+    }
+};
+
+const saveJobForSeeker = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { jobId } = req.body;
+
+        if (!jobId || !mongoose.Types.ObjectId.isValid(jobId)) {
+            return res.status(400).json({ success: false, message: "Valid jobId is required" });
+        }
+
+        const job = await Job.findById(jobId).lean();
+        if (!job || job.status !== "active") {
+            return res.status(404).json({ success: false, message: "Job not found or no longer available" });
+        }
+
+        try {
+            await SavedJob.create({ seeker: userId, job: jobId });
+        } catch (e) {
+            if (e?.code === 11000) {
+                return res.status(400).json({ success: false, message: "This job is already in your saved list" });
+            }
+            throw e;
+        }
+
+        return res.status(201).json({ success: true, message: "Job saved" });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Server error saving job",
+            error: error.message,
+        });
+    }
+};
+
+const unsaveJobForSeeker = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { jobId } = req.params;
+
+        if (!jobId || !mongoose.Types.ObjectId.isValid(jobId)) {
+            return res.status(400).json({ success: false, message: "Valid job id is required" });
+        }
+
+        await SavedJob.deleteOne({ seeker: userId, job: jobId });
+
+        return res.status(200).json({ success: true, message: "Removed from saved jobs" });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Server error removing saved job",
+            error: error.message,
+        });
+    }
+};
+
 export {
     getMyJobSeekerProfile,
     updateJobSeekerProfile,
@@ -593,5 +685,8 @@ export {
     addEducation,
     updateEducation,
     deleteEducation,
-    getJobSeekerDashboard
+    getJobSeekerDashboard,
+    getMySavedJobs,
+    saveJobForSeeker,
+    unsaveJobForSeeker,
 };

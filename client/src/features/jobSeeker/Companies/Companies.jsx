@@ -1,9 +1,12 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import "./Companies.css";
 import { getAllRecruiters, getRecruiterWithJobs } from "../../../services/recruiterService";
 import { applyToJob, getMyApplications } from "../../../services/applicationService";
 import { getMyJobSeekerProfile } from "../../../services/jobSeekerService";
+import SaveJobButton from "../components/SaveJobButton";
+
+const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:3000/api").replace(/\/api\/?$/, "") || "http://localhost:3000";
 
 const initials = (name = "") => {
   const parts = String(name).trim().split(/\s+/).filter(Boolean);
@@ -32,7 +35,9 @@ const formatSalary = (min, max) => {
 const Companies = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedIndustry, setSelectedIndustry] = useState("All");
+  const [selectedIndustry, setSelectedIndustry] = useState("");
+  const [selectedSize, setSelectedSize] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
   const [selectedCompanyId, setSelectedCompanyId] = useState(null);
   const [applyModal, setApplyModal] = useState({ open: false, job: null });
   const [coverLetter, setCoverLetter] = useState("");
@@ -45,23 +50,56 @@ const Companies = () => {
     queryFn: getAllRecruiters,
   });
 
-  const companies = companiesData?.recruiters || [];
+  const companies = useMemo(() => companiesData?.recruiters || [], [companiesData]);
 
-  const industries = useMemo(() => {
+  const industryOptions = useMemo(() => {
     const set = new Set(companies.map((c) => (c?.industry || "").trim()).filter(Boolean));
-    return ["All", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [companies]);
+
+  const sizeOptions = useMemo(() => {
+    const set = new Set(companies.map((c) => (c?.companySize || "").trim()).filter(Boolean));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [companies]);
 
   const filteredCompanies = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
+    const locQ = locationFilter.trim().toLowerCase();
     return companies.filter((c) => {
       const name = (c?.companyName || "").toLowerCase();
-      const industry = (c?.industry || "");
+      const industry = (c?.industry || "").trim();
+      const size = (c?.companySize || "").trim();
+      const loc = (c?.user?.location || "").toLowerCase();
       const matchesSearch = !q || name.includes(q);
-      const matchesIndustry = selectedIndustry === "All" || industry === selectedIndustry;
-      return matchesSearch && matchesIndustry;
+      const matchesIndustry = !selectedIndustry || industry === selectedIndustry;
+      const matchesSize = !selectedSize || size === selectedSize;
+      const matchesLocation = !locQ || loc.includes(locQ);
+      return matchesSearch && matchesIndustry && matchesSize && matchesLocation;
     });
-  }, [companies, searchTerm, selectedIndustry]);
+  }, [companies, searchTerm, selectedIndustry, selectedSize, locationFilter]);
+
+  useEffect(() => {
+    if (!selectedCompanyId) return;
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      if (applyModal.open) {
+        setApplyModal({ open: false, job: null });
+        return;
+      }
+      setSelectedCompanyId(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectedCompanyId, applyModal.open]);
+
+  useEffect(() => {
+    if (!selectedCompanyId) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [selectedCompanyId]);
 
   const {
     data: selectedData,
@@ -103,7 +141,7 @@ const Companies = () => {
     mutationFn: ({ jobId, coverLetter: cl, resumeFile: rf, existingResumeUrl: er }) =>
       applyToJob({ jobId, coverLetter: cl, resumeFile: rf, existingResumeUrl: er }),
     onSuccess: () => {
-      queryClient.invalidateQueries(["myApplications"]);
+      queryClient.invalidateQueries({ queryKey: ["myApplications"] });
       setToast({ type: "success", message: "Applied successfully!" });
       setTimeout(() => setToast({ type: "", message: "" }), 2500);
       setApplyModal({ open: false, job: null });
@@ -143,21 +181,6 @@ const Companies = () => {
         </div>
       </section>
 
-      {/* 3. Filter Section */}
-      <section className="companies-filters-section">
-        <div className="industry-filters">
-          {industries.map(industry => (
-            <button 
-              key={industry}
-              onClick={() => setSelectedIndustry(industry)}
-              className={`filter-btn ${selectedIndustry === industry ? 'active' : ''}`}
-            >
-              {industry}
-            </button>
-          ))}
-        </div>
-      </section>
-
       {/* 2. Companies Grid */}
       <section className="companies-list-section">
         {toast.message && (
@@ -168,11 +191,6 @@ const Companies = () => {
 
         <div className="companies-header-bar">
           <p className="results-count">Showing <span>{filteredCompanies.length}</span> companies</p>
-          {selectedCompanyId && (
-            <button className="reset-btn" onClick={() => setSelectedCompanyId(null)}>
-              Close Company
-            </button>
-          )}
         </div>
 
         {companiesLoading && (
@@ -205,7 +223,16 @@ const Companies = () => {
                 ? (companiesErr?.response?.data?.message || "Failed to load companies.")
                 : "No companies found matching your criteria."}
             </p>
-            <button className="reset-btn" onClick={() => { setSearchTerm(''); setSelectedIndustry('All'); }}>
+            <button
+              type="button"
+              className="reset-btn"
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedIndustry("");
+                setSelectedSize("");
+                setLocationFilter("");
+              }}
+            >
               Reset Filters
             </button>
           </div>
@@ -213,11 +240,11 @@ const Companies = () => {
           <>
             <div className="companies-grid">
               {filteredCompanies.map(company => (
-              <div className={`company-card ${selectedCompanyId === company._id ? "company-card-selected" : ""}`} key={company._id}>
+              <div className="company-card" key={company._id}>
                 <div className="company-card-header">
                   <div className="company-logo-container">
                     {company.companyLogo ? (
-                      <img className="company-logo-img" src={`http://localhost:3000${company.companyLogo}`} alt="Logo" />
+                      <img className="company-logo-img" src={`${API_ORIGIN}${company.companyLogo}`} alt="Logo" />
                     ) : (
                       <span className="company-logo-text">{initials(company.companyName)}</span>
                     )}
@@ -245,6 +272,7 @@ const Companies = () => {
 
                 <div className="company-card-footer">
                   <button
+                    type="button"
                     className="view-jobs-btn"
                     onClick={() => setSelectedCompanyId(company._id)}
                   >
@@ -255,86 +283,112 @@ const Companies = () => {
               </div>
             ))}
             </div>
-
-            {selectedCompanyId && (
-              <div className="company-details-panel">
-                <div className="company-details-head">
-                  <div className="company-details-title">
-                    <h2>{selectedCompany?.companyName || "Company"}</h2>
-                    <p>{selectedCompany?.industry || "General"} • {selectedCompany?.user?.location || "Location not specified"}</p>
-                  </div>
-                  <button className="reset-btn" onClick={() => setSelectedCompanyId(null)}>Close</button>
-                </div>
-
-                {selectedLoading && <div className="company-details-loading">Loading jobs...</div>}
-                {selectedError && (
-                  <div className="company-details-error">
-                    {selectedErr?.response?.data?.message || "Failed to load company jobs."}
-                  </div>
-                )}
-
-                {!selectedLoading && !selectedError && (
-                  <>
-                    <p className="company-details-desc">{selectedCompany?.companyDescription || "Company description not added yet."}</p>
-
-                    <div className="company-jobs-head">
-                      <h3>Open Jobs</h3>
-                      <span className="company-jobs-count">{companyJobs.length} active</span>
-                    </div>
-
-                    {companyJobs.length === 0 ? (
-                      <div className="company-jobs-empty">No jobs available</div>
-                    ) : (
-                      <div className="company-jobs-grid">
-                        {companyJobs.map((job) => {
-                          const jobId = String(job?._id || "");
-                          const isApplied = appliedJobIds.has(jobId);
-                          const salary = formatSalary(job?.salaryMin, job?.salaryMax);
-                          return (
-                            <div key={jobId} className="company-job-card">
-                              <div className="company-job-top">
-                                <div>
-                                  <h4 className="company-job-title">{job?.jobTitle || "Untitled role"}</h4>
-                                  <p className="company-job-loc">{job?.location || "Location not specified"}</p>
-                                </div>
-                                <span className="company-job-type">{job?.jobType || "Job"}</span>
-                              </div>
-                              <div className="company-job-meta">
-                                {salary && <span className="company-job-salary">{salary}</span>}
-                                {Array.isArray(job?.skills) && job.skills.length > 0 && (
-                                  <div className="company-job-skills">
-                                    {job.skills.slice(0, 6).map((s) => (
-                                      <span key={s} className="company-skill-chip">{s}</span>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                              <div className="company-job-actions">
-                                <button
-                                  className={`company-apply-btn ${isApplied ? "company-apply-btn-applied" : ""}`}
-                                  disabled={isApplied}
-                                  onClick={() => {
-                                    setApplyModal({ open: true, job });
-                                    setCoverLetter("");
-                                    setResumeFile(null);
-                                    setResumeChoice(existingResumeUrl ? "profile" : "upload");
-                                  }}
-                                >
-                                  {isApplied ? "Applied" : "Apply"}
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
           </>
         )}
       </section>
+
+      {selectedCompanyId && (
+        <div
+          className="company-jobs-modal-backdrop"
+          role="presentation"
+          onClick={() => setSelectedCompanyId(null)}
+        >
+          <div
+            className="company-jobs-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="company-jobs-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="company-jobs-modal-head">
+              <div className="company-details-title">
+                <h2 id="company-jobs-modal-title">{selectedCompany?.companyName || "Company"}</h2>
+                <p>{selectedCompany?.industry || "General"} • {selectedCompany?.user?.location || "Location not specified"}</p>
+              </div>
+              <button
+                type="button"
+                className="company-jobs-modal-close"
+                onClick={() => setSelectedCompanyId(null)}
+                aria-label="Close"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="company-jobs-modal-body">
+              {selectedLoading && <div className="company-details-loading">Loading jobs...</div>}
+              {selectedError && (
+                <div className="company-details-error">
+                  {selectedErr?.response?.data?.message || "Failed to load company jobs."}
+                </div>
+              )}
+
+              {!selectedLoading && !selectedError && (
+                <>
+                  <p className="company-details-desc">{selectedCompany?.companyDescription || "Company description not added yet."}</p>
+
+                  <div className="company-jobs-head">
+                    <h3>Open Jobs</h3>
+                    <span className="company-jobs-count">{companyJobs.length} active</span>
+                  </div>
+
+                  {companyJobs.length === 0 ? (
+                    <div className="company-jobs-empty">No jobs available</div>
+                  ) : (
+                    <div className="company-jobs-grid">
+                      {companyJobs.map((job) => {
+                        const jobId = String(job?._id || "");
+                        const isApplied = appliedJobIds.has(jobId);
+                        const salary = formatSalary(job?.salaryMin, job?.salaryMax);
+                        return (
+                          <div key={jobId} className="company-job-card">
+                            <div className="company-job-top">
+                              <div>
+                                <h4 className="company-job-title">{job?.jobTitle || "Untitled role"}</h4>
+                                <p className="company-job-loc">{job?.location || "Location not specified"}</p>
+                              </div>
+                              <span className="company-job-type">{job?.jobType || "Job"}</span>
+                            </div>
+                            <div className="company-job-meta">
+                              {salary && <span className="company-job-salary">{salary}</span>}
+                              {Array.isArray(job?.skills) && job.skills.length > 0 && (
+                                <div className="company-job-skills">
+                                  {job.skills.slice(0, 6).map((s) => (
+                                    <span key={s} className="company-skill-chip">{s}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <div className="company-job-actions">
+                              <SaveJobButton jobId={job?._id} label />
+                              <button
+                                type="button"
+                                className={`company-apply-btn ${isApplied ? "company-apply-btn-applied" : ""}`}
+                                disabled={isApplied}
+                                onClick={() => {
+                                  setApplyModal({ open: true, job });
+                                  setCoverLetter("");
+                                  setResumeFile(null);
+                                  setResumeChoice(existingResumeUrl ? "profile" : "upload");
+                                }}
+                              >
+                                {isApplied ? "Applied" : "Apply"}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {applyModal.open && (
         <div className="apply-modal-backdrop" role="dialog" aria-modal="true">

@@ -64,6 +64,8 @@ const createJob = async (req, res) => {
 @access Public 
 ==============================================*/
 
+const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const getAllJobs = async (req, res) => {
     try {
         const { search, location, jobType,
@@ -75,7 +77,7 @@ const getAllJobs = async (req, res) => {
             query.$text = { $search: search };
         }
         if (location) {
-            query.location = { $regex: location, $options: "i" };
+            query.location = { $regex: escapeRegex(location), $options: "i" };
         }
         if (jobType) {
             query.jobType = jobType;
@@ -148,16 +150,18 @@ const getJobById = async (req, res) => {
 const getMyJobs = async (req, res) => {
     try {
         const recruiterId = req.user.id;
-
-        console.log("Decoded User:", req.user);
-        console.log("Recruiter ID:", req.user.id);
-
         const jobs = await Job.find({ recruiter: recruiterId })
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean();
+
+        const data = jobs.map((job) => ({
+            ...job,
+            applicationsCount: Array.isArray(job.applicants) ? job.applicants.length : 0,
+        }));
 
         res.status(200).json({
             success: true,
-            data: jobs
+            data
         });
 
 

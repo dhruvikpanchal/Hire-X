@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import {
@@ -70,10 +69,7 @@ const Login = () => {
     messages.forEach((msg, index) => {
       toast.custom(
         (t) => (
-          <motion.div
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: t.visible ? 1 : 0, x: t.visible ? 0 : 200 }}
-            transition={{ duration: 0.1 }}
+          <div
             style={{
               background: "#ef4444",
               color: "#fff",
@@ -84,7 +80,7 @@ const Login = () => {
             }}
           >
             {msg}
-          </motion.div>
+          </div>
         ),
         {
           duration: 2500 + index * 150, // staggered duration prevents overlapping glitch
@@ -111,11 +107,8 @@ const Login = () => {
     <div className="login-page">
       <div className="login-container">
         {/* Left Section - Form */}
-        <motion.div
+        <div
           className="login-left"
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
         >
           <div className="login-form-container">
             {/* Logo */}
@@ -194,13 +187,13 @@ const Login = () => {
               </div>
 
               {/* Submit */}
-              <motion.button
+              <button
                 type="submit"
                 className="btn-submit"
                 disabled={loginMutation.isPending}
               >
                 {loginMutation.isPending ? "Signing In..." : "Sign In"}
-              </motion.button>
+              </button>
 
               {/* Footer */}
               <div className="form-footer">
@@ -211,21 +204,18 @@ const Login = () => {
               </div>
             </form>
           </div>
-        </motion.div>
+        </div>
 
         {/* Right Section - Visual */}
-        <motion.div
+        <div
           className="login-right"
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
         >
           <img
             src={Image.login_page_banner}
             alt="Login page"
             className="login-image"
           />
-        </motion.div>
+        </div>
       </div>
     </div>
   );

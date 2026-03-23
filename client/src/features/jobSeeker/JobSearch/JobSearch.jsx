@@ -1,5 +1,4 @@
 import { useMemo, useRef, useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Search,
@@ -22,6 +21,7 @@ import "./JobSearch.css";
 import { getAllJobs } from "../../../services/jobService";
 import { applyToJob, getMyApplications } from "../../../services/applicationService";
 import { getMyJobSeekerProfile } from "../../../services/jobSeekerService";
+import SaveJobButton from "../components/SaveJobButton";
 
 /* ─── helpers ─── */
 const initials = (name = "") => {
@@ -88,7 +88,7 @@ const ApplyModal = ({ job, existingResume, onClose, onSuccess }) => {
   const applyMutation = useMutation({
     mutationFn: (payload) => applyToJob(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries(["myApplications"]);
+      queryClient.invalidateQueries({ queryKey: ["myApplications"] });
       setSuccessMsg("Application submitted successfully!");
       setTimeout(() => {
         setSuccessMsg("");
@@ -135,20 +135,12 @@ const ApplyModal = ({ job, existingResume, onClose, onSuccess }) => {
   const isPending = applyMutation.isPending;
 
   return (
-    <AnimatePresence>
-      <motion.div
+      <div
         className="modal-overlay"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
         onClick={onClose}
       >
-        <motion.div
+        <div
           className="apply-modal"
-          initial={{ opacity: 0, y: 40, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 40, scale: 0.97 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -177,14 +169,12 @@ const ApplyModal = ({ job, existingResume, onClose, onSuccess }) => {
 
           {/* Success overlay */}
           {successMsg && (
-            <motion.div
+            <div
               className="modal-success"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
             >
               <CheckCircle size={48} className="success-icon" />
               <p>{successMsg}</p>
-            </motion.div>
+            </div>
           )}
 
           {/* Form */}
@@ -256,10 +246,8 @@ const ApplyModal = ({ job, existingResume, onClose, onSuccess }) => {
 
                 {/* File input – shown when "new" is chosen */}
                 {resumeChoice === "new" && (
-                  <motion.div
+                  <div
                     className="file-drop-zone"
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <input
@@ -288,7 +276,7 @@ const ApplyModal = ({ job, existingResume, onClose, onSuccess }) => {
                         <p className="rc-hint">PDF, DOC, DOCX</p>
                       </div>
                     )}
-                  </motion.div>
+                  </div>
                 )}
               </section>
 
@@ -335,9 +323,8 @@ const ApplyModal = ({ job, existingResume, onClose, onSuccess }) => {
               </div>
             </form>
           )}
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+        </div>
+      </div>
   );
 };
 
@@ -376,22 +363,24 @@ const JobSearch = () => {
 
   const {
     data: jobs = [],
-    isLoading: jobsLoading,
+    isFetching: jobsFetching,
     isError: jobsError,
     error: jobsErrObj,
   } = useQuery({
     queryKey: ["jobs", jobsQueryParams],
     queryFn: () => getAllJobs(jobsQueryParams),
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const {
     data: myAppsData,
-    isLoading: appsLoading,
     isError: appsError,
     error: appsErrObj,
   } = useQuery({
     queryKey: ["myApplications"],
     queryFn: getMyApplications,
+    staleTime: 60 * 1000,
   });
 
   // Fetch seeker profile to get stored resume
@@ -413,43 +402,25 @@ const JobSearch = () => {
     return set;
   }, [myAppsData]);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  };
 
   return (
     <div className="job-search-page">
       {/* Search Header */}
       <header className="search-header">
         <div className="search-header-content">
-          <motion.h1
+          <h1
             className="search-title"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
           >
             Find Your Dream Job
-          </motion.h1>
-          <motion.p
+          </h1>
+          <p
             className="search-subtitle"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
           >
             Browse thousands of job openings from top companies
-          </motion.p>
+          </p>
 
-          <motion.div
+          <div
             className="job-search-box"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
           >
             <div className="search-input-group">
               <Search className="search-icon" size={20} />
@@ -495,11 +466,11 @@ const JobSearch = () => {
             <button
               className="search-button"
               type="button"
-              onClick={() => queryClient.invalidateQueries(["jobs"])}
+              onClick={() => queryClient.invalidateQueries({ queryKey: ["jobs"] })}
             >
               Search Jobs
             </button>
-          </motion.div>
+          </div>
         </div>
       </header>
 
@@ -519,43 +490,26 @@ const JobSearch = () => {
           </div>
         )}
 
-        <div className="results-count">
-          Showing <span>{jobs.length}</span> jobs based on your filters
-        </div>
+        {!jobsError && jobsFetching && (
+          <div className="jobs-loading" role="status" aria-live="polite">
+            <Loader2 className="jobs-loading-spinner spinning" size={40} aria-hidden />
+            <p className="jobs-loading-text">Loading jobs…</p>
+          </div>
+        )}
 
-        <motion.div
+        {!jobsError && !jobsFetching && (
+          <div className="results-count">
+            Showing <span>{jobs.length}</span>{" "}
+            {jobs.length === 1 ? "job" : "jobs"} based on your filters
+          </div>
+        )}
+
+        <div
           className="jobs-grid"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
         >
-          {/* Skeleton loading */}
-          {(jobsLoading || appsLoading) &&
-            Array.from({ length: 6 }).map((_, idx) => (
-              <div key={`sk-${idx}`} className="job-card job-card-skeleton">
-                <div className="card-header">
-                  <div className="company-logo skeleton-box" />
-                  <span className="posted-time skeleton-pill" />
-                </div>
-                <div className="card-body">
-                  <div className="skeleton-line skeleton-line-lg" />
-                  <div className="skeleton-line" />
-                  <div className="skeleton-tags">
-                    <span className="skeleton-pill" />
-                    <span className="skeleton-pill" />
-                  </div>
-                  <div className="skeleton-line skeleton-line-md" />
-                </div>
-                <div className="card-footer">
-                  <div className="skeleton-line skeleton-line-sm" />
-                  <div className="skeleton-btn" />
-                </div>
-              </div>
-            ))}
-
-          {/* Job cards */}
-          {!jobsLoading &&
-            !appsLoading &&
+          {/* Job cards — do not block on applications fetch; only jobs query drives this list */}
+          {!jobsError &&
+            !jobsFetching &&
             jobs.map((job) => {
               const jobId = String(job?._id || "");
               const isApplied = appliedJobIds.has(jobId);
@@ -564,11 +518,9 @@ const JobSearch = () => {
               const desc = shortText(job?.description, 160);
 
               return (
-                <motion.div
+                <div
                   key={jobId}
                   className="job-card"
-                  variants={itemVariants}
-                  whileHover={{ y: -5 }}
                 >
                   <div className="card-header">
                     <div className="company-logo">{initials(job?.company)}</div>
@@ -608,22 +560,25 @@ const JobSearch = () => {
                       <MapPin size={14} />
                       {job?.location || "Location not specified"}
                     </div>
-                    <button
-                      className={`apply-btn ${isApplied ? "apply-btn-applied" : ""}`}
-                      disabled={isApplied}
-                      onClick={() => {
-                        if (!isApplied) setApplyModalJob(job);
-                      }}
-                    >
-                      {isApplied ? "✓ Applied" : "Apply Now"}
-                    </button>
+                    <div className="card-footer-actions">
+                      <SaveJobButton jobId={job?._id} />
+                      <button
+                        className={`apply-btn ${isApplied ? "apply-btn-applied" : ""}`}
+                        disabled={isApplied}
+                        onClick={() => {
+                          if (!isApplied) setApplyModalJob(job);
+                        }}
+                      >
+                        {isApplied ? "✓ Applied" : "Apply Now"}
+                      </button>
+                    </div>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
-        </motion.div>
+        </div>
 
-        {!jobsLoading && !jobsError && jobs.length === 0 && (
+        {!jobsFetching && !jobsError && jobs.length === 0 && (
           <div
             className="no-results"
             style={{ textAlign: "center", padding: "3rem", color: "#64748b" }}

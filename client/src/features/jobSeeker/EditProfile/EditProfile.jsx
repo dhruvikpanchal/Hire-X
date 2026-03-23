@@ -424,7 +424,7 @@ export default function EditProfile() {
   setAvatarSrc(`http://localhost:3000${p.user.avatar}`);
 }
     }
-  }, [data]);
+  }, [data, avatarFile]);
 
   // separate cleanup
   useEffect(() => {

@@ -208,6 +208,12 @@ export default function MyJobs() {
   const normalizedJobs = jobs.map((job) => ({
     ...job,
     status: job.status?.toLowerCase() || "active",
+    applicationsCount:
+      typeof job.applicationsCount === "number"
+        ? job.applicationsCount
+        : Array.isArray(job.applicants)
+          ? job.applicants.length
+          : 0,
   }));
 
   const statusMutation = useMutation({
@@ -244,7 +250,6 @@ export default function MyJobs() {
   if (isLoading) {
     return (
       <div className="myjobs-loading">
-        <BriefcaseIcon />
         <p>Loading your jobs...</p>
       </div>
     );
@@ -569,13 +574,6 @@ export default function MyJobs() {
                         >
                           <EditIcon />
                           <span>Edit</span>
-                        </button>
-                        <button
-                          className="myjobs-action-btn"
-                          onClick={() => navigate(`/jobs/${job._id}`)}
-                        >
-                          <BriefcaseIcon />
-                          <span>View</span>
                         </button>
                         <button
                           disabled={

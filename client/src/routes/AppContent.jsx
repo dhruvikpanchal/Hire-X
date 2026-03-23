@@ -7,17 +7,16 @@ import JobSeekerLayout from "../layouts/JobSeekerLayout";
 import RecruiterLayout from "../layouts/RecruiterLayout";
 
 // Job Seeker Pages
-import JobSeekerHome from "../features/jobSeeker/Home/Home";
 import JobSeekerDashboard from "../features/jobSeeker/jobSeeker_dashboard/jobSeeker_dashboard";
 import JobSeekerCompanies from "../features/jobSeeker/Companies/Companies";
 import JobSeekerJobSearch from "../features/jobSeeker/JobSearch/JobSearch";
 import Profile from "../features/jobSeeker/Profile/Profile";
 import SavedJobs from "../features/jobSeeker/SavedJobs/SavedJobs";
-// import JobAlerts from "../features/jobSeeker/JobAlerts/JobAlerts";
 import MyApplications from "../features/jobSeeker/MyApplications/MyApplications";
 import JobSeekerMessages from "../features/jobSeeker/Messages/Messages";
 import JobSeekerEditProfile from "../features/jobSeeker/EditProfile/EditProfile";
 import JobSeekerEditCareer from "../features/jobSeeker/EditCareer/EditCareer";
+import JobSeekerCandidates from "../features/jobSeeker/Candidates/Candidates";
 
 // Recruiter Pages
 import RecruiterDashboard from "../features/recruiter/recruiter_dashboard/recruiter_dashboard";
@@ -26,16 +25,15 @@ import PostJob from "../features/recruiter/PostJob/PostJob";
 import MyJobs from "../features/recruiter/MyJobs/MyJobs";
 import Applications from "../features/recruiter/Applications/Applications";
 import RecruiterMessages from "../features/recruiter/Messages/Messages";
-import RecruiterPricing from "../features/recruiter/Pricing/Pricing";
 import RecruiterProfile from "../features/recruiter/RecruiterProfile/RecruiterProfile";
 import RecruiterEditProfile from "../features/recruiter/RecruiterEditProfile/RecruiterEditProfile";
+import RecruiterFeed from "../features/recruiter/RecruiterFeed/RecruiterFeed";
 
 // Public Pages
 import Home from "../features/public/Home/Home";
 import JobSearch from "../features/public/JobSearch/JobSearch";
 import Companies from "../features/public/Companies/Companies";
 import AboutUs from "../features/public/AboutUs/AboutUs";
-import Pricing from "../features/public/Pricing/Pricing";
 
 // Auth Pages
 import Register from "../features/auth/Register/Register";
@@ -52,7 +50,6 @@ function AppContent() {
         <Route path="/" element={<Home />} />
         <Route path="/jobs" element={<JobSearch />} />
         <Route path="/companies" element={<Companies />} />
-        <Route path="/pricing" element={<Pricing />} />
         <Route path="/about" element={<AboutUs />} />
       </Route>
 
@@ -67,12 +64,11 @@ function AppContent() {
 
       {/* Job Seeker Layout */}
       <Route path="/jobSeeker" element={<JobSeekerLayout />}>
-        <Route path="/jobSeeker/home" element={<JobSeekerHome />} />
         <Route path="/jobSeeker/dashboard" element={<JobSeekerDashboard />} />
         <Route path="/jobSeeker/companies" element={<JobSeekerCompanies />} />
         <Route path="/jobSeeker/jobSearch" element={<JobSeekerJobSearch />} />
         <Route path="/jobSeeker/profile" element={<Profile />} />
-        {/* <Route path="/jobSeeker/jobAlerts" element={<JobAlerts />} /> */}
+        <Route path="/jobSeeker/candidates" element={<JobSeekerCandidates />} />
         <Route path="/jobSeeker/messages" element={<JobSeekerMessages />} />
         <Route path="/jobSeeker/savedJobs" element={<SavedJobs />} />
         <Route path="/jobSeeker/myApplications" element={<MyApplications />} />
@@ -85,8 +81,8 @@ function AppContent() {
 
       {/* RecruiterLayout Layout */}
       <Route path="/recruiter" element={<RecruiterLayout />}>
-        <Route path="/recruiter/home" element={<Home />} />
         <Route path="/recruiter/dashboard" element={<RecruiterDashboard />} />
+        <Route path="/recruiter/feed" element={<RecruiterFeed />} />
         <Route path="/recruiter/findCandidates" element={<FindCandidates />} />
         <Route path="/recruiter/Post" element={<PostJob />} />
         <Route path="/recruiter/jobs/edit/:id" element={<PostJob />} />
@@ -98,7 +94,6 @@ function AppContent() {
           path="/recruiter/editProfile"
           element={<RecruiterEditProfile />}
         />
-        <Route path="/recruiter/pricing" element={<RecruiterPricing />} />
       </Route>
     </Routes>
   );

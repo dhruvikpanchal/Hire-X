@@ -9,6 +9,12 @@ const API = {
     PROFILE: "/recruiters/profile",
     DASHBOARD: "/recruiters/me/dashboard",
     CANDIDATES: "/recruiters/candidates",
+    FEED_POSTS: "/recruiters/feed/posts",
+    FEED_POST: (id) => `/recruiters/feed/posts/${id}`,
+    CONNECTIONS: "/recruiters/connections",
+    CONNECTION_REQUEST: "/recruiters/connections/request",
+    CONNECTION_ACCEPT: "/recruiters/connections/accept",
+    CONNECTION_USER: (userId) => `/recruiters/connections/${userId}`,
     ALL_RECRUITERS: "/recruiters",
     RECRUITER_BY_ID: (id) => `/recruiters/${id}`,
     RECRUITER_JOBS: (id) => `/recruiters/${id}/jobs`,
@@ -184,5 +190,79 @@ export const getCandidatesForRecruiter = async (params = {}) => {
     } catch (error) {
         console.error("Get candidates error:", error);
         throw error?.response?.data || { message: "Failed to fetch candidates" };
+    }
+};
+
+/* =========================================
+   Recruiter feed & recruiter connections
+========================================= */
+
+export const getRecruiterFeedPosts = async () => {
+    try {
+        const res = await axiosInstance.get(API.FEED_POSTS);
+        return res.data;
+    } catch (error) {
+        console.error("Get recruiter feed error:", error);
+        throw error?.response?.data || { message: "Failed to load feed" };
+    }
+};
+
+export const createRecruiterFeedPost = async (content) => {
+    try {
+        const res = await axiosInstance.post(API.FEED_POSTS, { content });
+        return res.data;
+    } catch (error) {
+        console.error("Create recruiter post error:", error);
+        throw error?.response?.data || { message: "Failed to publish post" };
+    }
+};
+
+export const updateRecruiterFeedPost = async (postId, content) => {
+    try {
+        const res = await axiosInstance.patch(API.FEED_POST(postId), { content });
+        return res.data;
+    } catch (error) {
+        console.error("Update recruiter post error:", error);
+        throw error?.response?.data || { message: "Failed to update post" };
+    }
+};
+
+export const getRecruiterConnections = async () => {
+    try {
+        const res = await axiosInstance.get(API.CONNECTIONS);
+        return res.data;
+    } catch (error) {
+        console.error("Get recruiter connections error:", error);
+        throw error?.response?.data || { message: "Failed to load connections" };
+    }
+};
+
+export const sendRecruiterConnectionRequest = async (recruiterId) => {
+    try {
+        const res = await axiosInstance.post(API.CONNECTION_REQUEST, { recruiterId });
+        return res.data;
+    } catch (error) {
+        console.error("Send recruiter connection error:", error);
+        throw error?.response?.data || { message: "Could not send request" };
+    }
+};
+
+export const acceptRecruiterConnectionRequest = async (requestId) => {
+    try {
+        const res = await axiosInstance.post(API.CONNECTION_ACCEPT, { requestId });
+        return res.data;
+    } catch (error) {
+        console.error("Accept recruiter connection error:", error);
+        throw error?.response?.data || { message: "Could not accept request" };
+    }
+};
+
+export const removeRecruiterConnection = async (otherUserId) => {
+    try {
+        const res = await axiosInstance.delete(API.CONNECTION_USER(otherUserId));
+        return res.data;
+    } catch (error) {
+        console.error("Remove recruiter connection error:", error);
+        throw error?.response?.data || { message: "Could not remove connection" };
     }
 };

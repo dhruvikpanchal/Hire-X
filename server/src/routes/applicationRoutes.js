@@ -9,6 +9,7 @@ import {
   getJobApplications,
   getRecruiterApplications,
   updateApplicationStatus,
+  removeApplicationByRecruiter,
 } from "../controllers/application.Controller.js";
 
 const router = express.Router();
@@ -42,6 +43,12 @@ router.put(
   authMiddleware,
   roleMiddleware("recruiter"),
   updateApplicationStatus,
+);
+router.delete(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("recruiter"),
+  removeApplicationByRecruiter,
 );
 
 export default router;

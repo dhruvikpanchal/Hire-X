@@ -10,6 +10,7 @@ import jobRoutes from "./routes/jobRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import chatRequestRoutes from "./routes/chatRequestRoutes.js";
+import friendsRoutes from "./routes/friendsRoutes.js";
 
 const app = express()
 
@@ -34,5 +35,6 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/chat-request", chatRequestRoutes);
+app.use("/api/friends", friendsRoutes);
 
 export { app }

@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import "./jobSeeker_dashboard.css";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import {
   ArrowUpRight,
   Bell,
@@ -45,24 +44,6 @@ const formatSalary = (job) => {
   return "Not disclosed";
 };
 
-/* ─── Motion variants ─────────────────────────────────── */
-const fade = {
-  hidden: { opacity: 0, y: 16 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.38, ease: [0.22, 1, 0.36, 1] } },
-};
-const stagger = {
-  hidden: {},
-  show:   { transition: { staggerChildren: 0.07 } },
-};
-const child = {
-  hidden: { opacity: 0, y: 12 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } },
-};
-const rowVariant = {
-  hidden: { opacity: 0, x: -8 },
-  show:   { opacity: 1, x: 0, transition: { duration: 0.26, ease: [0.22, 1, 0.36, 1] } },
-};
-
 /* ─── Component ───────────────────────────────────────── */
 export default function JobSeekerDashboard() {
   const BASE_URL = "http://localhost:3000";
@@ -73,7 +54,7 @@ export default function JobSeekerDashboard() {
 
   const profile             = data?.profile || null;
   const user                = profile?.user || null;
-  const stats               = data?.stats   || { applications: 0, savedJobs: 0, activeAlerts: 0, profileCompletion: 0 };
+  const stats               = useMemo(() => data?.stats   || { applications: 0, savedJobs: 0,  profileCompletion: 0 }, [data]);
   const recentApplications  = data?.recentApplications || [];
 
   const cards = useMemo(
@@ -81,7 +62,6 @@ export default function JobSeekerDashboard() {
       { key: "applications",     icon: <Briefcase  size={16} />, label: "Applications",      value: stats.applications },
       { key: "savedJobs",        icon: <Bookmark   size={16} />, label: "Saved Jobs",         value: stats.savedJobs },
       { key: "profileCompletion",icon: <UserRound  size={16} />, label: "Profile Complete",   value: `${stats.profileCompletion}%` },
-      { key: "activeAlerts",     icon: <Bell       size={16} />, label: "Active Alerts",      value: stats.activeAlerts },
     ],
     [stats],
   );
@@ -89,11 +69,11 @@ export default function JobSeekerDashboard() {
   const firstName = user?.fullName?.split(" ")[0] || "there";
 
   return (
-    <motion.div className="jsd" variants={fade} initial="hidden" animate="show">
+    <div className="jsd" >
       <div className="jsd__wrap">
 
         {/* ── Topbar ── */}
-        <motion.div className="jsd__topbar" variants={fade}>
+        <div className="jsd__topbar" >
           <div className="jsd__wordmark">
             <span className="jsd__wordmark-dot" />
             JobBoard
@@ -106,10 +86,10 @@ export default function JobSeekerDashboard() {
               <Bell size={15} />
             </a>
           </div>
-        </motion.div>
+        </div>
 
         {/* ── Hero band ── */}
-        <motion.div className="jsd__hero" variants={fade}>
+        <div className="jsd__hero" >
           <div className="jsd__heroLeft">
             <p className="jsd__greeting">Welcome back</p>
             <h1 className="jsd__title">Hey, {firstName} 👋</h1>
@@ -120,10 +100,8 @@ export default function JobSeekerDashboard() {
             {isLoading ? (
               <div className="jsd__profileSkel" />
             ) : (
-              <motion.div
+              <div
                 className="jsd__profileCard"
-                whileHover={{ y: -2 }}
-                transition={{ type: "spring", stiffness: 280, damping: 24 }}
               >
                 <div className="jsd__avatar">
                   {user?.avatar
@@ -158,45 +136,42 @@ export default function JobSeekerDashboard() {
                 <a className="jsd__cta" href="/jobseeker/editprofile">
                   Edit <ArrowUpRight size={14} />
                 </a>
-              </motion.div>
+              </div>
             )}
           </div>
-        </motion.div>
+        </div>
 
         {/* ── Error ── */}
         {isError && (
-          <motion.div className="jsd__error" variants={fade}>
+          <div className="jsd__error" >
             {error?.response?.data?.message || "Failed to load dashboard. Please try again."}
-          </motion.div>
+          </div>
         )}
 
         {/* ── Stat cards ── */}
-        <motion.div className="jsd__stats" variants={stagger} initial="hidden" animate="show">
+        <div className="jsd__stats" >
           {isLoading
-            ? Array.from({ length: 4 }).map((_, i) => (
+            ? Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="jsd__card jsd__card--skel" />
               ))
             : cards.map((c) => (
-                <motion.div
+                <div
                   className="jsd__card"
                   key={c.key}
-                  variants={child}
-                  whileHover={{ y: -3 }}
-                  transition={{ type: "spring", stiffness: 280, damping: 24 }}
                 >
                   <div className="jsd__cardTop">
                     <span className="jsd__cardLabel">{c.label}</span>
                     <div className="jsd__cardIcon">{c.icon}</div>
                   </div>
                   <div className="jsd__cardValue">{c.value}</div>
-                </motion.div>
+                </div>
               ))
           }
-        </motion.div>
+        </div>
 
         {/* ── Applications panel ── */}
         <div className="jsd__grid">
-          <motion.div className="jsd__panel" variants={fade} initial="hidden" animate="show">
+          <div className="jsd__panel" >
             <div className="jsd__panelHead">
               <div>
                 <div className="jsd__panelTitle">Recent Applications</div>
@@ -227,14 +202,11 @@ export default function JobSeekerDashboard() {
                 </a>
               </div>
             ) : (
-              <motion.div className="jsd__list" variants={stagger} initial="hidden" animate="show">
+              <div className="jsd__list">
                 {recentApplications.map((a) => (
-                  <motion.div
+                  <div
                     key={a._id}
                     className="jsd__row"
-                    variants={rowVariant}
-                    whileHover={{ x: 3 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 26 }}
                   >
                     <div className="jsd__rowMain">
                       <div className="jsd__rowTitle">{a.job?.jobTitle || "Job"}</div>
@@ -262,14 +234,14 @@ export default function JobSeekerDashboard() {
                     <span className={`jsd__badge jsd__badge--${String(a.status || "applied").toLowerCase()}`}>
                       {a.status}
                     </span>
-                  </motion.div>
+                  </div>
                 ))}
-              </motion.div>
+              </div>
             )}
-          </motion.div>
+          </div>
         </div>
 
       </div>
-    </motion.div>
+    </div>
   );
 }

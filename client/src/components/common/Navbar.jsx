@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Globe, ChevronDown, Menu, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
 // import files
 import { Image } from "../../utils/image_paths.js";
@@ -22,25 +21,16 @@ const Navbar = () => {
   }, []);
 
   return (
-    <motion.nav
-      className={`navbar ${scrolled ? "scrolled" : ""}`}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-    >
+    <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
       <div className="navbar-glass-bg"></div>
 
       <div className="container navbar-container">
         {/* Logo */}
         <Link to="/">
-          <motion.div
-            className="logo"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
+          <div className="logo">
             <img src={Image.logo} alt="logo" className="logo-icon" />
             <span className="logo-text">Hire X</span>
-          </motion.div>
+          </div>
         </Link>
 
         {/* Desktop Nav */}
@@ -48,72 +38,33 @@ const Navbar = () => {
           <ul className="nav-links">
             <li>
               <Link to="/">
-                <motion.div
-                  className={`nav-link ${location.pathname === "/" ? "active" : ""}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
+                <div className={`nav-link ${location.pathname === "/" ? "active" : ""}`}>
                   Home
-                </motion.div>
+                </div>
               </Link>
             </li>
             <li>
               <Link to="/jobs">
-                <motion.div
-                  className={`nav-link ${location.pathname === "/jobs" ? "active" : ""}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
+                <div className={`nav-link ${location.pathname === "/jobs" ? "active" : ""}`}>
                   Find Jobs
-                </motion.div>
+                </div>
               </Link>
             </li>
             <li>
               <Link to="/companies">
-                <motion.div
-                  className={`nav-link ${location.pathname === "/companies" ? "active" : ""}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
+                <div className={`nav-link ${location.pathname === "/companies" ? "active" : ""}`}>
                   Companies
-                </motion.div>
-              </Link>
-            </li>
-            <li>
-              <Link to="/pricing">
-                <motion.div
-                  className={`nav-link ${location.pathname === "/pricing" ? "active" : ""}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Pricing
-                </motion.div>
+                </div>
               </Link>
             </li>
             <li>
               <Link to="/about">
-                <motion.div
-                  className={`nav-link ${location.pathname === "/about" ? "active" : ""}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
+                <div className={`nav-link ${location.pathname === "/about" ? "active" : ""}`}>
                   About Us
-                </motion.div>
+                </div>
               </Link>
             </li>
           </ul>
-
-          <div className="nav-separator"></div>
-
-          <motion.div
-            className="location-selector"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Globe size={16} />
-            <span>US</span>
-            <ChevronDown size={14} />
-          </motion.div>
         </div>
 
         {/* Actions */}
@@ -133,26 +84,17 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Toggle */}
-        <motion.button
+        <button
           className="mobile-toggle"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </motion.button>
+        </button>
       </div>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            className="mobile-menu"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+      {mobileMenuOpen && (
+        <div className="mobile-menu">
             <div className="mobile-menu-content">
               <ul className="mobile-nav-links">
                 <li>
@@ -200,10 +142,9 @@ const Navbar = () => {
                 <button className="btn nav-btn-primary w-full">Post a Job</button>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.nav>
+          </div>
+      )}
+    </nav>
   );
 };
 
