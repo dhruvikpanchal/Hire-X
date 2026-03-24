@@ -50,7 +50,7 @@ const Login = () => {
       toast.success("Login successful!");
 
       if (data.user.role === "jobseeker") {
-        navigate("/jobseeker/dashboard");
+        navigate("/jobSeeker/dashboard");
       } else {
         navigate("/recruiter/dashboard");
       }

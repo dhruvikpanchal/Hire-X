@@ -5,7 +5,7 @@ import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 function JobSeekerLayout() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredRole="jobseeker">
       <div className="JobSeekerLayout">
         <JobSeekerNavbar />
         <Outlet />

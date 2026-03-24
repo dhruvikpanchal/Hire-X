@@ -1,6 +1,9 @@
 import React, { useMemo, useState, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { getCandidatesForRecruiter } from "../../../services/recruiterService.js";
+import { getConversations } from "../../../services/messageService.js";
+import { getMyChatRequests, sendChatRequest } from "../../../services/chatRequestService.js";
 import "./FindCandidates.css";
 
 const getApiBase = () =>
@@ -125,7 +128,13 @@ function CandidateSkeleton({ index }) {
   );
 }
 
-function CandidateCard({ candidate, index }) {
+function CandidateCard({
+  candidate,
+  index,
+  isConnected,
+  requestStatus,
+  onMessageClick,
+}) {
   const user = candidate?.user || {};
   const name = user.fullName || "Candidate";
   const title = candidate.jobTitle?.trim() || "Job seeker";
@@ -241,9 +250,13 @@ function CandidateCard({ candidate, index }) {
           </span>
         )}
         {mailHref ? (
-          <a className="findcandidates-btn findcandidates-btn-primary">
-            <MailIcon /> message
-          </a>
+          <button
+            type="button"
+            className="findcandidates-btn findcandidates-btn-primary"
+            onClick={() => onMessageClick(candidate)}
+          >
+            <MailIcon /> {isConnected ? "Message" : requestStatus === "pending" ? "Request pending" : "Message"}
+          </button>
         ) : (
           <span className="findcandidates-btn findcandidates-btn-disabled">
             <MailIcon /> No email
@@ -255,8 +268,12 @@ function CandidateCard({ candidate, index }) {
 }
 
 export default function FindCandidates() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [draft, setDraft] = useState(() => emptyFilters());
   const [applied, setApplied] = useState(() => emptyFilters());
+  const [requestModalOpen, setRequestModalOpen] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   const queryKey = useMemo(
     () => ["recruiter-candidates", applied.q, applied.location, applied.jobTitle, applied.skills],
@@ -272,6 +289,49 @@ export default function FindCandidates() {
         jobTitle: applied.jobTitle || undefined,
         skills: applied.skills || undefined,
       }),
+  });
+
+  const { data: conversationsData } = useQuery({
+    queryKey: ["conversations"],
+    queryFn: getConversations,
+  });
+
+  const { data: requestsData } = useQuery({
+    queryKey: ["chatRequests"],
+    queryFn: getMyChatRequests,
+  });
+
+  const conversations = useMemo(() => conversationsData?.conversations || [], [conversationsData]);
+  const sentRequests = useMemo(() => requestsData?.sent || [], [requestsData]);
+
+  const connectedUserIds = useMemo(() => {
+    const set = new Set();
+    conversations.forEach((conversation) => {
+      if (conversation?.otherUser?._id) {
+        set.add(String(conversation.otherUser._id));
+      }
+    });
+    return set;
+  }, [conversations]);
+
+  const sentByUserId = useMemo(() => {
+    const map = new Map();
+    sentRequests.forEach((request) => {
+      if (request?.user?._id) {
+        map.set(String(request.user._id), request.status);
+      }
+    });
+    return map;
+  }, [sentRequests]);
+
+  const sendRequestMutation = useMutation({
+    mutationFn: sendChatRequest,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["chatRequests"] });
+      await queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      setRequestModalOpen(false);
+      setSelectedCandidate(null);
+    },
   });
 
   const candidates = useMemo(() => data?.candidates ?? [], [data]);
@@ -303,6 +363,25 @@ export default function FindCandidates() {
 
   const errMessage =
     error?.message || error?.error || "Something went wrong. Try again.";
+
+  const handleMessageClick = useCallback(
+    (candidate) => {
+      const userId = candidate?.user?._id;
+      if (!userId) return;
+
+      if (connectedUserIds.has(String(userId))) {
+        navigate(`/recruiter/messages?userId=${encodeURIComponent(String(userId))}`);
+        return;
+      }
+
+      setSelectedCandidate(candidate);
+      setRequestModalOpen(true);
+    },
+    [connectedUserIds, navigate],
+  );
+
+  const selectedUserId = selectedCandidate?.user?._id ? String(selectedCandidate.user._id) : null;
+  const selectedRequestStatus = selectedUserId ? sentByUserId.get(selectedUserId) || "none" : "none";
 
   return (
     <div className="findcandidates-page">
@@ -474,11 +553,66 @@ export default function FindCandidates() {
         {!isError && !isLoading && candidates.length > 0 && (
           <div className="findcandidates-list">
             {candidates.map((c, idx) => (
-              <CandidateCard key={c._id || idx} candidate={c} index={idx} />
+              <CandidateCard
+                key={c._id || idx}
+                candidate={c}
+                index={idx}
+                isConnected={connectedUserIds.has(String(c?.user?._id || ""))}
+                requestStatus={sentByUserId.get(String(c?.user?._id || "")) || "none"}
+                onMessageClick={handleMessageClick}
+              />
             ))}
           </div>
         )}
       </div>
+
+      {requestModalOpen && selectedCandidate && (
+        <div className="findcandidates-modal-backdrop" onClick={() => setRequestModalOpen(false)}>
+          <div className="findcandidates-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Send chat request</h3>
+            <p>
+              {selectedRequestStatus === "pending"
+                ? "You already sent a request to this candidate. Wait for acceptance to start chatting."
+                : selectedRequestStatus === "accepted"
+                  ? "Chat is already enabled. Open Messages to continue."
+                  : `Send a chat request to ${selectedCandidate?.user?.fullName || "this candidate"}?`}
+            </p>
+            <div className="findcandidates-modal-actions">
+              <button
+                type="button"
+                className="findcandidates-btn findcandidates-btn-outline"
+                onClick={() => setRequestModalOpen(false)}
+              >
+                Cancel
+              </button>
+              {selectedRequestStatus === "accepted" ? (
+                <button
+                  type="button"
+                  className="findcandidates-btn findcandidates-btn-primary"
+                  onClick={() => {
+                    navigate(`/recruiter/messages?userId=${encodeURIComponent(selectedUserId)}`);
+                    setRequestModalOpen(false);
+                  }}
+                >
+                  Open Messages
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="findcandidates-btn findcandidates-btn-primary"
+                  disabled={selectedRequestStatus === "pending" || sendRequestMutation.isPending}
+                  onClick={() => {
+                    if (!selectedUserId) return;
+                    sendRequestMutation.mutate(selectedUserId);
+                  }}
+                >
+                  {sendRequestMutation.isPending ? "Sending..." : selectedRequestStatus === "pending" ? "Request Sent" : "Send Request"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

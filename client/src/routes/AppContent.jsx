@@ -36,6 +36,7 @@ import Companies from "../features/public/Companies/Companies";
 import AboutUs from "../features/public/AboutUs/AboutUs";
 
 // Auth Pages
+import NotFound from "../features/auth/NotFound/NotFound";
 import Register from "../features/auth/Register/Register";
 import Login from "../features/auth/Login/Login";
 import ForgotPassword from "../features/auth/ForgotPassword/ForgotPassword";
@@ -64,36 +65,37 @@ function AppContent() {
 
       {/* Job Seeker Layout */}
       <Route path="/jobSeeker" element={<JobSeekerLayout />}>
-        <Route path="/jobSeeker/dashboard" element={<JobSeekerDashboard />} />
-        <Route path="/jobSeeker/companies" element={<JobSeekerCompanies />} />
-        <Route path="/jobSeeker/jobSearch" element={<JobSeekerJobSearch />} />
-        <Route path="/jobSeeker/profile" element={<Profile />} />
-        <Route path="/jobSeeker/candidates" element={<JobSeekerCandidates />} />
-        <Route path="/jobSeeker/messages" element={<JobSeekerMessages />} />
-        <Route path="/jobSeeker/savedJobs" element={<SavedJobs />} />
-        <Route path="/jobSeeker/myApplications" element={<MyApplications />} />
-        <Route path="/jobSeeker/editCareer" element={<JobSeekerEditCareer />} />
-        <Route
-          path="/jobSeeker/EditProfile"
-          element={<JobSeekerEditProfile />}
-        />
+        <Route path="dashboard" element={<JobSeekerDashboard />} />
+        <Route path="companies" element={<JobSeekerCompanies />} />
+        <Route path="jobSearch" element={<JobSeekerJobSearch />} />
+        <Route path="profile" element={<Profile />} />
+        <Route path="candidates" element={<JobSeekerCandidates />} />
+        <Route path="messages" element={<JobSeekerMessages />} />
+        <Route path="savedJobs" element={<SavedJobs />} />
+        <Route path="myApplications" element={<MyApplications />} />
+        <Route path="editCareer" element={<JobSeekerEditCareer />} />
+        <Route path="EditProfile" element={<JobSeekerEditProfile />} />
+        <Route path="*" element={<NotFound />} />
       </Route>
 
       {/* RecruiterLayout Layout */}
       <Route path="/recruiter" element={<RecruiterLayout />}>
-        <Route path="/recruiter/dashboard" element={<RecruiterDashboard />} />
-        <Route path="/recruiter/feed" element={<RecruiterFeed />} />
-        <Route path="/recruiter/findCandidates" element={<FindCandidates />} />
-        <Route path="/recruiter/Post" element={<PostJob />} />
-        <Route path="/recruiter/jobs/edit/:id" element={<PostJob />} />
-        <Route path="/recruiter/my-jobs" element={<MyJobs />} />
-        <Route path="/recruiter/applications" element={<Applications />} />
-        <Route path="/recruiter/messages" element={<RecruiterMessages />} />
-        <Route path="/recruiter/profile" element={<RecruiterProfile />} />
-        <Route
-          path="/recruiter/editProfile"
-          element={<RecruiterEditProfile />}
-        />
+        <Route path="dashboard" element={<RecruiterDashboard />} />
+        <Route path="feed" element={<RecruiterFeed />} />
+        <Route path="findCandidates" element={<FindCandidates />} />
+        <Route path="Post" element={<PostJob />} />
+        <Route path="jobs/edit/:id" element={<PostJob />} />
+        <Route path="my-jobs" element={<MyJobs />} />
+        <Route path="applications" element={<Applications />} />
+        <Route path="messages" element={<RecruiterMessages />} />
+        <Route path="profile" element={<RecruiterProfile />} />
+        <Route path="editProfile" element={<RecruiterEditProfile />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+
+      {/* Global 404 (guest/public) */}
+      <Route element={<AuthLayout />}>
+        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   );

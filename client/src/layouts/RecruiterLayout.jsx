@@ -5,7 +5,7 @@ import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 function RecruiterLayout() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredRole="recruiter">
       <div className="RecruiterLayout">
         <RecruiterNavbar />
         <Outlet />

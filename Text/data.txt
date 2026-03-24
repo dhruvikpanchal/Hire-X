@@ -1,0 +1,170 @@
+Testing Data - Hire_X
+Purpose: Dummy data for testing (Job Seekers + Recruiters with Job Posts)
+
+==================================================
+JOB SEEKERS (5)
+==================================================
+
+1) Job Seeker
+- fullName: Aarav Sharma
+- username: aarav_sharma
+- email: aarav.sharma01@testmail.com
+- password: Test@123
+- role: jobseeker
+- phone: +91-9876500001
+- location: Delhi
+- jobTitle: Frontend Developer
+- experienceYears: 2
+- skills: React, JavaScript, HTML, CSS, Tailwind
+- bio: Junior frontend developer looking for product-based roles.
+
+2) Job Seeker
+- fullName: Priya Nair
+- username: priya_nair
+- email: priya.nair02@testmail.com
+- password: Test@123
+- role: jobseeker
+- phone: +91-9876500002
+- location: Bengaluru
+- jobTitle: Backend Developer
+- experienceYears: 3
+- skills: Node.js, Express, MongoDB, REST API
+- bio: Backend-focused developer with strong API design skills.
+
+3) Job Seeker
+- fullName: Rohan Mehta
+- username: rohan_mehta
+- email: rohan.mehta03@testmail.com
+- password: Test@123
+- role: jobseeker
+- phone: +91-9876500003
+- location: Pune
+- jobTitle: Full Stack Developer
+- experienceYears: 4
+- skills: React, Node.js, PostgreSQL, Docker
+- bio: Full stack engineer with startup and SaaS project experience.
+
+4) Job Seeker
+- fullName: Sneha Iyer
+- username: sneha_iyer
+- email: sneha.iyer04@testmail.com
+- password: Test@123
+- role: jobseeker
+- phone: +91-9876500004
+- location: Hyderabad
+- jobTitle: UI/UX Designer
+- experienceYears: 2
+- skills: Figma, Wireframing, Prototyping, Design Systems
+- bio: Designer focused on user-friendly and clean interface systems.
+
+5) Job Seeker
+- fullName: Imran Khan
+- username: imran_khan
+- email: imran.khan05@testmail.com
+- password: Test@123
+- role: jobseeker
+- phone: +91-9876500005
+- location: Mumbai
+- jobTitle: Data Analyst
+- experienceYears: 1
+- skills: SQL, Excel, Power BI, Python
+- bio: Entry-level analyst interested in business intelligence roles.
+
+==================================================
+RECRUITERS WITH POST JOB DATA (5)
+==================================================
+
+1) Recruiter
+- fullName: Neha Verma
+- username: neha_verma_hr
+- email: neha.verma01@testmail.com
+- password: Test@123
+- role: recruiter
+- company: TechNova Solutions
+- companyLocation: Noida
+
+Post Job
+- jobTitle: Frontend Developer
+- jobType: Full-time
+- workMode: Hybrid
+- experienceRequired: 2+ years
+- salaryRange: 6 LPA - 10 LPA
+- location: Noida
+- skillsRequired: React, JavaScript, CSS, Redux
+- description: Build and maintain modern web interfaces for SaaS dashboards.
+
+2) Recruiter
+- fullName: Karan Malhotra
+- username: karan_malhotra_hr
+- email: karan.malhotra02@testmail.com
+- password: Test@123
+- role: recruiter
+- company: ByteBridge Pvt Ltd
+- companyLocation: Bengaluru
+
+Post Job
+- jobTitle: Backend Developer
+- jobType: Full-time
+- workMode: Remote
+- experienceRequired: 3+ years
+- salaryRange: 8 LPA - 14 LPA
+- location: Bengaluru
+- skillsRequired: Node.js, Express, MongoDB, Redis
+- description: Develop secure APIs and microservices for core platform modules.
+
+3) Recruiter
+- fullName: Aditi Rao
+- username: aditi_rao_hr
+- email: aditi.rao03@testmail.com
+- password: Test@123
+- role: recruiter
+- company: CloudPulse Systems
+- companyLocation: Chennai
+
+Post Job
+- jobTitle: DevOps Engineer
+- jobType: Full-time
+- workMode: Onsite
+- experienceRequired: 4+ years
+- salaryRange: 12 LPA - 18 LPA
+- location: Chennai
+- skillsRequired: AWS, Docker, Kubernetes, CI/CD
+- description: Manage cloud infrastructure, deployment pipelines, and reliability.
+
+4) Recruiter
+- fullName: Rajesh Gupta
+- username: rajesh_gupta_hr
+- email: rajesh.gupta04@testmail.com
+- password: Test@123
+- role: recruiter
+- company: DataMint Analytics
+- companyLocation: Pune
+
+Post Job
+- jobTitle: Data Analyst
+- jobType: Full-time
+- workMode: Hybrid
+- experienceRequired: 1+ years
+- salaryRange: 5 LPA - 8 LPA
+- location: Pune
+- skillsRequired: SQL, Python, Power BI, Excel
+- description: Analyze business data and create reports for product decisions.
+
+5) Recruiter
+- fullName: Meera Joshi
+- username: meera_joshi_hr
+- email: meera.joshi05@testmail.com
+- password: Test@123
+- role: recruiter
+- company: DesignNest Studio
+- companyLocation: Mumbai
+
+Post Job
+- jobTitle: UI/UX Designer
+- jobType: Contract
+- workMode: Remote
+- experienceRequired: 2+ years
+- salaryRange: 40,000 - 70,000 INR/month
+- location: Mumbai
+- skillsRequired: Figma, User Research, Prototyping, Design Systems
+- description: Design intuitive product flows and high-fidelity design components.

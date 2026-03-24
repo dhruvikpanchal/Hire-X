@@ -30,6 +30,14 @@ async function getChatRequestState(a, b) {
   return { status: doc.status, canChat: doc.status === "accepted", requestId: doc._id };
 }
 
+async function refreshConversationLastMessage(conversationId) {
+  const latest = await Message.findOne({ conversation: conversationId })
+    .sort({ createdAt: -1 })
+    .select("_id")
+    .lean();
+  await Conversation.findByIdAndUpdate(conversationId, { lastMessage: latest?._id || null });
+}
+
 /* =========================================================
    GET CONVERSATIONS (for logged-in user)
    GET /api/messages/conversations
@@ -102,7 +110,10 @@ export const getMessagesByConversation = async (req, res) => {
     const blockState = otherUserId ? await getBlockState(userId, otherUserId) : { canSend: true };
     const chatReq = otherUserId ? await getChatRequestState(userId, otherUserId) : { status: "accepted", canChat: true, requestId: null };
 
-    const messages = await Message.find({ conversation: conversationId })
+    const messages = await Message.find({
+      conversation: conversationId,
+      deletedFor: { $ne: userId },
+    })
       .populate("sender", "fullName email avatar role")
       .sort({ createdAt: 1 })
       .lean();
@@ -112,6 +123,7 @@ export const getMessagesByConversation = async (req, res) => {
       messages: messages.map((m) => ({
         _id: m._id,
         content: m.content,
+        deletedForEveryone: Boolean(m.deletedForEveryone),
         senderId: m.sender?._id || m.sender,
         sender: m.sender
           ? { _id: m.sender._id, fullName: m.sender.fullName, avatar: m.sender.avatar, role: m.sender.role }
@@ -285,6 +297,187 @@ export const getBlockedUsers = async (req, res) => {
     res.status(200).json({ success: true, blocked });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+/* =========================================================
+  DELETE ONE MESSAGE (sender only)
+  DELETE /api/messages/:messageId
+========================================================= */
+export const deleteMessage = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { messageId } = req.params;
+    const mode = String(req.query.mode || "me").toLowerCase();
+
+    if (!isValidId(messageId)) {
+      return res.status(400).json({ success: false, message: "Invalid message id" });
+    }
+
+    const msg = await Message.findById(messageId).lean();
+    if (!msg) {
+      return res.status(404).json({ success: false, message: "Message not found" });
+    }
+
+    const convo = await Conversation.findById(msg.conversation).lean();
+    if (!convo) {
+      return res.status(404).json({ success: false, message: "Conversation not found" });
+    }
+
+    const isParticipant = (convo.participants || []).some((p) => String(p) === String(userId));
+    if (!isParticipant) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
+    if (mode === "everyone") {
+      if (String(msg.sender) !== String(userId)) {
+        return res.status(403).json({ success: false, message: "Only sender can delete for everyone" });
+      }
+
+      await Message.updateOne(
+        { _id: msg._id },
+        {
+          $set: {
+            content: "This message was deleted",
+            deletedForEveryone: true,
+          },
+        },
+      );
+      await refreshConversationLastMessage(msg.conversation);
+    } else {
+      await Message.updateOne({ _id: msg._id }, { $addToSet: { deletedFor: userId } });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: mode === "everyone" ? "Message deleted for everyone" : "Message deleted for you",
+      deletedMessageId: msg._id,
+      mode,
+      conversationId: msg.conversation,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+/* =========================================================
+  DELETE ALL MESSAGES IN CONVERSATION
+  DELETE /api/messages/conversations/:conversationId/all
+========================================================= */
+export const deleteAllMessages = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { conversationId } = req.params;
+
+    if (!isValidId(conversationId)) {
+      return res.status(400).json({ success: false, message: "Invalid conversation id" });
+    }
+
+    const convo = await Conversation.findById(conversationId).lean();
+    if (!convo) {
+      return res.status(404).json({ success: false, message: "Conversation not found" });
+    }
+
+    const isParticipant = (convo.participants || []).some((p) => String(p) === String(userId));
+    if (!isParticipant) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
+    await Message.deleteMany({ conversation: conversationId });
+    await Conversation.findByIdAndUpdate(conversationId, { lastMessage: null });
+
+    return res.status(200).json({
+      success: true,
+      message: "All messages deleted",
+      conversationId,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+/* =========================================================
+  CLEAR CONVERSATION FOR ME
+  POST /api/messages/conversations/:conversationId/clear-me
+========================================================= */
+export const clearConversationForMe = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { conversationId } = req.params;
+
+    if (!isValidId(conversationId)) {
+      return res.status(400).json({ success: false, message: "Invalid conversation id" });
+    }
+
+    const convo = await Conversation.findById(conversationId).lean();
+    if (!convo) {
+      return res.status(404).json({ success: false, message: "Conversation not found" });
+    }
+
+    const isParticipant = (convo.participants || []).some((p) => String(p) === String(userId));
+    if (!isParticipant) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
+    await Message.updateMany(
+      { conversation: conversationId, deletedFor: { $ne: userId } },
+      { $addToSet: { deletedFor: userId } },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Conversation cleared for you",
+      conversationId,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+/* =========================================================
+  EDIT MESSAGE (sender only)
+  PATCH /api/messages/:messageId
+========================================================= */
+export const editMessage = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { messageId } = req.params;
+    const content = String(req.body?.content || "").trim();
+
+    if (!isValidId(messageId)) {
+      return res.status(400).json({ success: false, message: "Invalid message id" });
+    }
+    if (!content) {
+      return res.status(400).json({ success: false, message: "Message cannot be empty" });
+    }
+
+    const msg = await Message.findById(messageId);
+    if (!msg) {
+      return res.status(404).json({ success: false, message: "Message not found" });
+    }
+    if (String(msg.sender) !== String(userId)) {
+      return res.status(403).json({ success: false, message: "You can only edit your own messages" });
+    }
+    if (msg.deletedForEveryone) {
+      return res.status(400).json({ success: false, message: "Deleted messages cannot be edited" });
+    }
+
+    msg.content = content;
+    await msg.save();
+    await refreshConversationLastMessage(msg.conversation);
+
+    return res.status(200).json({
+      success: true,
+      message: "Message updated",
+      updatedMessage: {
+        _id: msg._id,
+        content: msg.content,
+        updatedAt: msg.updatedAt,
+      },
+      conversationId: msg.conversation,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 

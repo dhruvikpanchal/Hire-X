@@ -35,3 +35,23 @@ export const getBlockedUsers = async () => {
   return res.data;
 };
 
+export const deleteMessage = async ({ messageId, mode = "me" }) => {
+  const res = await axiosInstance.delete(`/messages/${messageId}`, { params: { mode } });
+  return res.data;
+};
+
+export const deleteAllMessages = async (conversationId) => {
+  const res = await axiosInstance.delete(`/messages/conversations/${conversationId}/all`);
+  return res.data;
+};
+
+export const clearConversationForMe = async (conversationId) => {
+  const res = await axiosInstance.post(`/messages/conversations/${conversationId}/clear-me`);
+  return res.data;
+};
+
+export const editMessage = async ({ messageId, content }) => {
+  const res = await axiosInstance.patch(`/messages/${messageId}`, { content });
+  return res.data;
+};
+

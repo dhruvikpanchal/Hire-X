@@ -1,7 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   blockUser,
+  clearConversationForMe,
+  deleteMessage,
+  editMessage,
   getBlockedUsers,
   getConversations,
   getMessagesByConversation,
@@ -71,11 +75,14 @@ const formatDayLabel = (iso) => {
 };
 
 export default function ChatPage({ role }) {
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [activeId, setActiveId] = useState(null);
   const [sidebarTab, setSidebarTab] = useState("chats"); // chats | blocked
   const [search, setSearch] = useState("");
   const [text, setText] = useState("");
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editingText, setEditingText] = useState("");
   const [toast, setToast] = useState({ type: "", message: "" });
   const [openRequestModal, setOpenRequestModal] = useState(false);
 
@@ -95,6 +102,17 @@ export default function ChatPage({ role }) {
   const blockedList = blockedData?.blocked || [];
 
   const conversations = useMemo(() => data?.conversations || [], [data]);
+  const targetUserId = searchParams.get("userId");
+
+  useEffect(() => {
+    if (!targetUserId || conversations.length === 0) return;
+    const targetConversation = conversations.find(
+      (conversation) => String(conversation?.otherUser?._id) === String(targetUserId),
+    );
+    if (targetConversation?._id) {
+      setActiveId(String(targetConversation._id));
+    }
+  }, [targetUserId, conversations]);
 
   const filteredConversations = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -221,6 +239,93 @@ export default function ChatPage({ role }) {
     },
   });
 
+  const deleteMessageMutation = useMutation({
+    mutationFn: deleteMessage,
+    onSuccess: (resData) => {
+      const deletedMessageId = String(resData?.deletedMessageId || "");
+      const conversationId = String(resData?.conversationId || activeConversationId || "");
+      const mode = String(resData?.mode || "me");
+
+      if (conversationId && deletedMessageId) {
+        queryClient.setQueryData(["messages", conversationId], (old) => {
+          if (!old) return old;
+          if (mode === "everyone") {
+            return {
+              ...old,
+              messages: (old.messages || []).map((m) =>
+                String(m._id) === deletedMessageId
+                  ? { ...m, content: "This message was deleted", deletedForEveryone: true }
+                  : m,
+              ),
+            };
+          }
+          return {
+            ...old,
+            messages: (old.messages || []).filter((m) => String(m._id) !== deletedMessageId),
+          };
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      showToast("success", mode === "everyone" ? "Deleted for everyone." : "Deleted for you.", 2200);
+    },
+    onError: (err) => {
+      const msg = err?.response?.data?.message || "Failed to delete message.";
+      showToast("error", msg, 3200);
+    },
+  });
+
+  const clearForMeMutation = useMutation({
+    mutationFn: clearConversationForMe,
+    onSuccess: (resData) => {
+      const conversationId = String(resData?.conversationId || activeConversationId || "");
+      if (conversationId) {
+        queryClient.setQueryData(["messages", conversationId], (old) => {
+          if (!old) return old;
+          return { ...old, messages: [] };
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      showToast("success", "Chat cleared for your side.", 2200);
+    },
+    onError: (err) => {
+      const msg = err?.response?.data?.message || "Failed to clear chat.";
+      showToast("error", msg, 3200);
+    },
+  });
+
+  const editMessageMutation = useMutation({
+    mutationFn: editMessage,
+    onSuccess: (resData) => {
+      const conversationId = String(resData?.conversationId || activeConversationId || "");
+      const updated = resData?.updatedMessage;
+      if (conversationId && updated?._id) {
+        queryClient.setQueryData(["messages", conversationId], (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            messages: (old.messages || []).map((m) =>
+              String(m._id) === String(updated._id)
+                ? { ...m, content: updated.content, updatedAt: updated.updatedAt }
+                : m,
+            ),
+          };
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      setEditingMessageId(null);
+      setEditingText("");
+      showToast("success", "Message updated.", 2000);
+    },
+    onError: (err) => {
+      const msg = err?.response?.data?.message || "Failed to edit message.";
+      showToast("error", msg, 3200);
+    },
+  });
+
   const onSend = () => {
     if (!otherUser?._id) return;
     if (!block.canSend || !chatRequest.canChat) return;
@@ -231,6 +336,29 @@ export default function ChatPage({ role }) {
       content,
       conversationId: activeConversationId,
     });
+  };
+
+  const onCopyMessage = async (content) => {
+    const textToCopy = String(content || "");
+    if (!textToCopy.trim()) return;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(textToCopy);
+      } else {
+        const helper = document.createElement("textarea");
+        helper.value = textToCopy;
+        helper.setAttribute("readonly", "");
+        helper.style.position = "absolute";
+        helper.style.left = "-9999px";
+        document.body.appendChild(helper);
+        helper.select();
+        document.execCommand("copy");
+        document.body.removeChild(helper);
+      }
+      showToast("success", "Message copied.", 1800);
+    } catch {
+      showToast("error", "Could not copy message.", 2200);
+    }
   };
 
   return (
@@ -391,6 +519,20 @@ export default function ChatPage({ role }) {
             </div>
 
             <div className="chat__headerRight">
+              {otherUser && (
+                <button
+                  className="chat__clearBtn"
+                  type="button"
+                  onClick={() => {
+                    if (!activeConversationId) return;
+                    const ok = window.confirm("Clear this chat only for your side?");
+                    if (ok) clearForMeMutation.mutate(activeConversationId);
+                  }}
+                  disabled={clearForMeMutation.isPending}
+                >
+                  Clear My Chat
+                </button>
+              )}
               <button
                 className="chat__reqBtn"
                 type="button"
@@ -439,6 +581,7 @@ export default function ChatPage({ role }) {
                 {messages.map((m) => {
                   const mine = String(m.senderId) !== String(otherUser?._id);
                   const themUser = m.sender && !mine ? m.sender : otherUser;
+                  const isEditing = editingMessageId === String(m._id);
                   return (
                     <div
                       key={m._id}
@@ -448,7 +591,86 @@ export default function ChatPage({ role }) {
                         <UserAvatar user={themUser} size="xs" className="chat__msgAvatar" />
                       )}
                       <div className={`chat__bubble ${mine ? "chat__bubble--me" : "chat__bubble--them"}`}>
-                        <div className="chat__bubbleText">{m.content}</div>
+                        <div className="chat__messageActions">
+                          <button
+                            type="button"
+                            className="chat__messageAction"
+                            onClick={() => onCopyMessage(m.content)}
+                            disabled={Boolean(m.deletedForEveryone)}
+                          >
+                            Copy
+                          </button>
+                          {mine && !m.deletedForEveryone && (
+                            <button
+                              type="button"
+                              className="chat__messageAction"
+                              onClick={() => {
+                                setEditingMessageId(String(m._id));
+                                setEditingText(String(m.content || ""));
+                              }}
+                            >
+                              Edit
+                            </button>
+                          )}
+                          {!m.deletedForEveryone && (
+                            <button
+                              type="button"
+                              className="chat__messageAction chat__messageAction--danger"
+                              onClick={() => deleteMessageMutation.mutate({ messageId: m._id, mode: "me" })}
+                              disabled={deleteMessageMutation.isPending}
+                            >
+                              Delete for me
+                            </button>
+                          )}
+                          {mine && !m.deletedForEveryone && (
+                            <button
+                              type="button"
+                              className="chat__messageAction chat__messageAction--danger"
+                              onClick={() => deleteMessageMutation.mutate({ messageId: m._id, mode: "everyone" })}
+                              disabled={deleteMessageMutation.isPending}
+                            >
+                              Delete for everyone
+                            </button>
+                          )}
+                        </div>
+                        {isEditing ? (
+                          <div className="chat__editWrap">
+                            <textarea
+                              className="chat__editInput"
+                              rows={2}
+                              value={editingText}
+                              onChange={(e) => setEditingText(e.target.value)}
+                            />
+                            <div className="chat__editActions">
+                              <button
+                                type="button"
+                                className="chat__messageAction"
+                                onClick={() => {
+                                  setEditingMessageId(null);
+                                  setEditingText("");
+                                }}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="button"
+                                className="chat__messageAction"
+                                onClick={() => {
+                                  const next = editingText.trim();
+                                  if (!next) return;
+                                  editMessageMutation.mutate({ messageId: m._id, content: next });
+                                }}
+                                disabled={editMessageMutation.isPending}
+                              >
+                                Save
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className={`chat__bubbleText ${m.deletedForEveryone ? "chat__bubbleText--deleted" : ""}`}>
+                            {m.content}
+                          </div>
+                        )}
                         <div className="chat__bubbleTime">{formatTime(m.createdAt)}</div>
                       </div>
                     </div>

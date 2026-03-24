@@ -15,6 +15,7 @@ import user1 from '../assets/icons/user-1.jpg';
 import user2 from '../assets/icons/user-2.jpg';
 import user3 from '../assets/icons/user-3.jpg';
 import adminLogin from '../assets/banners/admin.png';
+import notFound from '../assets/banners/404_1.mp4';
 
 export const Image = {
     logo,
@@ -34,4 +35,5 @@ export const Image = {
     user2,
     user3,
     adminLogin,
+    notFound,
 }
