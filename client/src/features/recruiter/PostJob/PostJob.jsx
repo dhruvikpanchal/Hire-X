@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams , useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import "./PostJob.css";
 import {
   createJob,
@@ -251,6 +252,10 @@ function ReviewRow({ label, value, onEdit, step }) {
 
 /* ─── Main Component ─── */
 export default function PostJob() {
+
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
   const { id } = useParams();
   console.log(id); // should print job id
 
@@ -394,6 +399,8 @@ export default function PostJob() {
       if (id) {
         // ✅ EDIT MODE
         await updateJob(id, payload);
+        await queryClient.invalidateQueries({ queryKey: ["myJobs"] });
+        navigate("/recruiter/my-jobs");
       } else {
         // ✅ CREATE MODE
         await createJob(payload);

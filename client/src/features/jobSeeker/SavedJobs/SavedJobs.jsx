@@ -20,9 +20,9 @@ const formatSalary = (min, max) => {
   const hasMax = typeof max === "number" && !Number.isNaN(max);
   const fmt = (n) => {
     try {
-      return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+      return new Intl.NumberFormat(undefined, { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
     } catch {
-      return `$${n}`;
+      return `₹${n}`;
     }
   };
   if (hasMin && hasMax) return `${fmt(min)} – ${fmt(max)}`;
@@ -159,7 +159,6 @@ export default function SavedJobs() {
                       )}
                       {salary && (
                         <span className="sj-tag sj-tag--salary">
-                          <DollarSign size={13} />
                           {salary}
                         </span>
                       )}

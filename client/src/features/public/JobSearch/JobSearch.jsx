@@ -1,12 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Search,
-  MapPin,
-  Clock,
-  Building2,
-} from "lucide-react";
+import { Search, MapPin, Clock, Building2 } from "lucide-react";
 import { getAllJobs } from "../../../services/jobService";
 
 // import files
@@ -22,8 +17,20 @@ const initials = (text = "") => {
 const inferLevel = (experience = "") => {
   const e = String(experience).toLowerCase();
   if (e.includes("lead")) return "Lead";
-  if (e.includes("senior") || e.includes("5+") || e.includes("6+") || e.includes("7+")) return "Senior";
-  if (e.includes("junior") || e.includes("0-1") || e.includes("1+") || e.includes("fresher")) return "Junior";
+  if (
+    e.includes("senior") ||
+    e.includes("5+") ||
+    e.includes("6+") ||
+    e.includes("7+")
+  )
+    return "Senior";
+  if (
+    e.includes("junior") ||
+    e.includes("0-1") ||
+    e.includes("1+") ||
+    e.includes("fresher")
+  )
+    return "Junior";
   return "Mid-Level";
 };
 
@@ -82,7 +89,8 @@ const JobSearch = () => {
       getAllJobs({
         search: queryFilters.keyword || undefined,
         location: queryFilters.location || undefined,
-        jobType: queryFilters.type !== "All Types" ? queryFilters.type : undefined,
+        jobType:
+          queryFilters.type !== "All Types" ? queryFilters.type : undefined,
         page: 1,
         limit: 50,
       }),
@@ -90,7 +98,9 @@ const JobSearch = () => {
 
   const filteredJobs = useMemo(() => {
     if (queryFilters.level === "All Levels") return jobs;
-    return jobs.filter((job) => inferLevel(job?.experience) === queryFilters.level);
+    return jobs.filter(
+      (job) => inferLevel(job?.experience) === queryFilters.level,
+    );
   }, [jobs, queryFilters.level]);
 
   const normalizedJobs = filteredJobs.map((job) => {
@@ -108,29 +118,25 @@ const JobSearch = () => {
     };
   });
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
-  };
+  // const containerVariants = {
+  //   hidden: { opacity: 0 },
+  //   visible: {
+  //     opacity: 1,
+  //     transition: { staggerChildren: 0.1 },
+  //   },
+  // };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  };
+  // const itemVariants = {
+  //   hidden: { opacity: 0, y: 20 },
+  //   visible: { opacity: 1, y: 0 },
+  // };
 
   return (
     <div className="job-search-page">
       {/* Search Header */}
       <header className="search-header">
         <div className="search-header-content">
-          <h1
-            className="search-title"
-          >
-            Find Your Dream Job
-          </h1>
+          <h1 className="search-title">Find Your Dream Job</h1>
           <p className="search-subtitle">
             Browse thousands of job openings from top companies
           </p>
@@ -188,7 +194,11 @@ const JobSearch = () => {
               </select>
             </div>
 
-            <button className="search-button" onClick={handleSearch} type="button">
+            <button
+              className="search-button"
+              onClick={handleSearch}
+              type="button"
+            >
               Search Jobs
             </button>
           </div>
@@ -198,17 +208,13 @@ const JobSearch = () => {
       {/* Job Listings */}
       <section className="jobs-container">
         <div className="results-count">
-          Showing <span>{normalizedJobs.length}</span> jobs based on your filters
+          Showing <span>{normalizedJobs.length}</span> jobs based on your
+          filters
         </div>
 
-        <div
-          className="jobs-grid"
-        >
+        <div className="jobs-grid">
           {normalizedJobs.map((job) => (
-            <div
-              key={job.id}
-              className="job-card"
-            >
+            <div key={job.id} className="job-card">
               <div className="card-header">
                 <div className="company-logo">{job.logo}</div>
                 <span className="posted-time">

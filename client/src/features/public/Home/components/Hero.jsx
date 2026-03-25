@@ -23,24 +23,18 @@ const Hero = () => {
     <section className="hero section">
       <div className="container hero-container">
         <div className="hero-content">
-          <h1
-            className="hero-title"
-          >
+          <h1 className="hero-title">
             Find Your <span className="highlight">Dream Job</span>
             <br />
             Are You Ready?
           </h1>
 
-          <p
-            className="hero-subtitle"
-          >
+          <p className="hero-subtitle">
             Find the job that fits your life. Connect with the best companies
             and start your career today.
           </p>
 
-          <div
-            className="search-box glass"
-          >
+          <div className="search-box glass">
             <div className="input-group">
               <Search className="icon" />
               <input
@@ -53,12 +47,16 @@ const Hero = () => {
                 }}
               />
             </div>
-            <div className="divider"></div>
+            {/* <div className="divider"></div>
             <div className="input-group">
               <MapPin className="icon" />
               <input type="text" placeholder="Location" />
-            </div>
-            <button className="btn btn-primary search-btn" onClick={onSearchCompanies} type="button">
+            </div> */}
+            <button
+              className="btn btn-primary search-btn"
+              onClick={onSearchCompanies}
+              type="button"
+            >
               Search
             </button>
           </div>

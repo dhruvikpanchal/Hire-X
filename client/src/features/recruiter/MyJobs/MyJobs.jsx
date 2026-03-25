@@ -202,7 +202,7 @@ export default function MyJobs() {
   } = useQuery({
     queryKey: ["myJobs"],
     queryFn: getMyJobs,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnMount:true, // refresh data on mount
   });
 
   const normalizedJobs = jobs.map((job) => ({

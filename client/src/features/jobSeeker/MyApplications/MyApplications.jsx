@@ -11,7 +11,6 @@ import { getMyJobSeekerProfile } from "../../../services/jobSeekerService";
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
   { value: "applied", label: "Applied" },
-  { value: "under_review", label: "Under Review" },
   { value: "shortlisted", label: "Shortlisted" },
   { value: "rejected", label: "Rejected" },
 ];
@@ -20,7 +19,6 @@ const normalizeStatus = (raw) => {
   const s = String(raw || "").toLowerCase();
   if (s === "shortlisted" || s === "interview" || s === "offered") return { key: "shortlisted", label: "Shortlisted" };
   if (s === "rejected") return { key: "rejected", label: "Rejected" };
-  if (s === "viewed" || s === "under_review") return { key: "under_review", label: "Under Review" };
   return { key: "applied", label: "Applied" };
 };
 
@@ -237,10 +235,6 @@ export default function MyApplications() {
             <div className="ma-stat">
               <span className="ma-stat__num">{counts.all}</span>
               <span className="ma-stat__lbl">Total</span>
-            </div>
-            <div className="ma-stat">
-              <span className="ma-stat__num ma-stat__num--yellow">{counts.under_review}</span>
-              <span className="ma-stat__lbl">Under review</span>
             </div>
             <div className="ma-stat">
               <span className="ma-stat__num ma-stat__num--green">{counts.shortlisted}</span>
