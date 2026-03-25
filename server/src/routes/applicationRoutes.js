@@ -11,6 +11,7 @@ import {
   updateApplicationStatus,
   removeApplicationByRecruiter,
 } from "../controllers/application.Controller.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = express.Router();
 
@@ -20,35 +21,35 @@ router.post(
   authMiddleware,
   roleMiddleware("jobseeker"),
   upload.single("resume"),
-  applyToJob
+  asyncHandler(applyToJob)
 );
-router.get("/me", authMiddleware, roleMiddleware("jobseeker"), getMyApplications);
-router.get("/my", authMiddleware, roleMiddleware("jobseeker"), getMyApplicationsV2);
+router.get("/me", authMiddleware, roleMiddleware("jobseeker"), asyncHandler(getMyApplications));
+router.get("/my", authMiddleware, roleMiddleware("jobseeker"), asyncHandler(getMyApplicationsV2));
 
 // Recruiter
 router.get(
   "/recruiter",
   authMiddleware,
   roleMiddleware("recruiter"),
-  getRecruiterApplications,
+  asyncHandler(getRecruiterApplications),
 );
 router.get(
   "/job/:jobId",
   authMiddleware,
   roleMiddleware("recruiter"),
-  getJobApplications,
+  asyncHandler(getJobApplications),
 );
 router.put(
   "/:id/status",
   authMiddleware,
   roleMiddleware("recruiter"),
-  updateApplicationStatus,
+  asyncHandler(updateApplicationStatus),
 );
 router.delete(
   "/:id",
   authMiddleware,
   roleMiddleware("recruiter"),
-  removeApplicationByRecruiter,
+  asyncHandler(removeApplicationByRecruiter),
 );
 
 export default router;

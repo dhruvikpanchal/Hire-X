@@ -7,7 +7,7 @@ export const jobs = [
     company: "Google",
     location: "Mountain View, CA",
     type: "Full Time",
-    salary: "$120k - $150k",
+    salary: "₹120L - ₹150L",
     logo: Image.googleLogo,
     posted: "2 days ago",
     featured: true
@@ -18,7 +18,7 @@ export const jobs = [
     company: "Airbnb",
     location: "Remote",
     type: "Full Time",
-    salary: "$100k - $130k",
+    salary: "₹100L - ₹130L",
     logo: Image.airbnbLogo,
     posted: "5 days ago",
     featured: false
@@ -29,7 +29,7 @@ export const jobs = [
     company: "Spotify",
     location: "New York, NY",
     type: "Contract",
-    salary: "$90k - $110k",
+    salary: "₹90L - ₹110L",
     logo: Image.spotifyLogo,
     posted: "1 week ago",
     featured: false
@@ -40,7 +40,7 @@ export const jobs = [
     company: "Slack",
     location: "San Francisco, CA",
     type: "Part Time",
-    salary: "$60k - $80k",
+    salary: "₹60L - ₹80L",
     logo: Image.slackLogo,
     posted: "3 days ago",
     featured: false
@@ -51,7 +51,7 @@ export const jobs = [
     company: "Microsoft",
     location: "Seattle, WA",
     type: "Full Time",
-    salary: "$130k - $160k",
+    salary: "₹50L - ₹60L",
     logo: Image.microsoftLogo,
     posted: "1 day ago",
     featured: false

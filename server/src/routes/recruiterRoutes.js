@@ -24,16 +24,17 @@ import {
 import authMiddleware from "../middlewares/authMiddleware.js";
 import roleMiddleware from "../middlewares/roleMiddleware.js";
 import upload from "../middlewares/uploadMiddleware.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = express.Router();
 
-router.get("/", getAllRecruiters);
+router.get("/", asyncHandler(getAllRecruiters));
 
 router.get(
     "/candidates",
     authMiddleware,
     roleMiddleware("recruiter"),
-    searchCandidatesForRecruiters
+    asyncHandler(searchCandidatesForRecruiters)
 );
 
 /* Feed & recruiter-to-recruiter connections — must be registered before /:id */
@@ -41,68 +42,68 @@ router.get(
     "/feed/posts",
     authMiddleware,
     roleMiddleware("recruiter"),
-    getRecruiterFeedPosts,
+    asyncHandler(getRecruiterFeedPosts),
 );
 router.post(
     "/feed/posts",
     authMiddleware,
     roleMiddleware("recruiter"),
-    createRecruiterFeedPost,
+    asyncHandler(createRecruiterFeedPost),
 );
 router.patch(
     "/feed/posts/:id",
     authMiddleware,
     roleMiddleware("recruiter"),
-    updateRecruiterFeedPost,
+    asyncHandler(updateRecruiterFeedPost),
 );
 router.get(
     "/connections",
     authMiddleware,
     roleMiddleware("recruiter"),
-    getRecruiterConnections,
+    asyncHandler(getRecruiterConnections),
 );
 router.post(
     "/connections/request",
     authMiddleware,
     roleMiddleware("recruiter"),
-    sendRecruiterConnectionRequest,
+    asyncHandler(sendRecruiterConnectionRequest),
 );
 router.post(
     "/connections/accept",
     authMiddleware,
     roleMiddleware("recruiter"),
-    acceptRecruiterConnectionRequest,
+    asyncHandler(acceptRecruiterConnectionRequest),
 );
 router.delete(
     "/connections/:id",
     authMiddleware,
     roleMiddleware("recruiter"),
-    removeRecruiterConnection,
+    asyncHandler(removeRecruiterConnection),
 );
 
-router.get("/profile/me", authMiddleware, getMyRecruiterProfile);
+router.get("/profile/me", authMiddleware, asyncHandler(getMyRecruiterProfile));
 
-router.get("/me/dashboard", authMiddleware, roleMiddleware("recruiter"), getRecruiterDashboard);
+router.get("/me/dashboard", authMiddleware, roleMiddleware("recruiter"), asyncHandler(getRecruiterDashboard));
 
-router.put("/profile", authMiddleware, updateRecruiterProfile);
+router.put("/profile", authMiddleware, asyncHandler(updateRecruiterProfile));
 
 router.post(
     "/profile-image",
     authMiddleware,
     upload.single("profileImage"),
-    uploadRecruiterImage
+    asyncHandler(uploadRecruiterImage)
 );
 
 router.post(
     "/company-logo",
     authMiddleware,
     upload.single("companyLogo"),
-    uploadCompanyLogo
+    asyncHandler(uploadCompanyLogo)
 );
 
-router.delete("/profile", authMiddleware, deleteRecruiterProfile);
+router.delete("/profile", authMiddleware, asyncHandler(deleteRecruiterProfile));
 
-router.get("/:id/jobs", getRecruiterWithJobs);
-router.get("/:id", getRecruiterById);
+router.get("/:id/jobs", asyncHandler(getRecruiterWithJobs));
+router.get("/:id", asyncHandler(getRecruiterById));
 
 export default router;

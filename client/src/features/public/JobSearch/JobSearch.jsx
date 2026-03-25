@@ -43,8 +43,8 @@ const formatPosted = (createdAt) => {
 
 const formatSalary = (min, max) => {
   if (!min && !max) return "Salary not specified";
-  if (min && max) return `$${min} - $${max}`;
-  return min ? `$${min}+` : `Up to $${max}`;
+  if (min && max) return `₹${min} - ₹${max}`;
+  return min ? `₹${min}+` : `Up to ₹${max}`;
 };
 
 const JobSearch = () => {

@@ -21,9 +21,9 @@ const formatSalary = (min, max) => {
   const hasMax = typeof max === "number" && !Number.isNaN(max);
   const fmt = (n) => {
     try {
-      return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+      return new Intl.NumberFormat(undefined, { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
     } catch {
-      return `$${n}`;
+      return ` ₹${n}`;
     }
   };
   if (hasMin && hasMax) return `${fmt(min)} – ${fmt(max)}`;
@@ -369,6 +369,7 @@ const Companies = () => {
                                 className={`company-apply-btn ${isApplied ? "company-apply-btn-applied" : ""}`}
                                 disabled={isApplied}
                                 onClick={() => {
+                                  setSelectedCompanyId(null);
                                   setApplyModal({ open: true, job });
                                   setCoverLetter("");
                                   setResumeFile(null);

@@ -12,21 +12,22 @@ import {
   clearConversationForMe,
   editMessage,
 } from "../controllers/message.Controller.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = express.Router();
 
 router.use(authMiddleware);
 
-router.get("/blocked", getBlockedUsers);
-router.get("/conversations", getConversations);
-router.get("/conversations/:conversationId", getMessagesByConversation);
-router.delete("/conversations/:conversationId/all", deleteAllMessages);
-router.post("/conversations/:conversationId/clear-me", clearConversationForMe);
-router.post("/send", sendMessage);
-router.post("/block", blockUser);
-router.post("/unblock", unblockUser);
-router.patch("/:messageId", editMessage);
-router.delete("/:messageId", deleteMessage);
+router.get("/blocked", asyncHandler(getBlockedUsers));
+router.get("/conversations", asyncHandler(getConversations));
+router.get("/conversations/:conversationId", asyncHandler(getMessagesByConversation));
+router.delete("/conversations/:conversationId/all", asyncHandler(deleteAllMessages));
+router.post("/conversations/:conversationId/clear-me", asyncHandler(clearConversationForMe));
+router.post("/send", asyncHandler(sendMessage));
+router.post("/block", asyncHandler(blockUser));
+router.post("/unblock", asyncHandler(unblockUser));
+router.patch("/:messageId", asyncHandler(editMessage));
+router.delete("/:messageId", asyncHandler(deleteMessage));
 
 export default router;
 

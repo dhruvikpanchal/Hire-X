@@ -18,9 +18,9 @@ const initials = (name = "") => {
 const formatSalary = (min, max) => {
   const hasMin = typeof min === "number" && !Number.isNaN(min);
   const hasMax = typeof max === "number" && !Number.isNaN(max);
-  if (hasMin && hasMax) return `$${min} - $${max}`;
-  if (hasMin) return `$${min}+`;
-  if (hasMax) return `Up to $${max}`;
+  if (hasMin && hasMax) return `₹${min} - ₹${max}`;
+  if (hasMin) return `₹${min}+`;
+  if (hasMax) return `Up to ₹${max}`;
   return "";
 };
 

@@ -11,6 +11,7 @@ import applicationRoutes from "./routes/applicationRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import chatRequestRoutes from "./routes/chatRequestRoutes.js";
 import friendsRoutes from "./routes/friendsRoutes.js";
+import { errorHandler } from "./middlewares/errorHandler.js";
 
 const app = express()
 
@@ -36,5 +37,7 @@ app.use("/api/applications", applicationRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/chat-request", chatRequestRoutes);
 app.use("/api/friends", friendsRoutes);
+
+app.use(errorHandler);
 
 export { app }

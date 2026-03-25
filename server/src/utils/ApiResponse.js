@@ -1,10 +1,27 @@
+/**
+ * Standard success payload: { success: true, ...data }
+ * Pass all fields (message, token, user, etc.) in `data` to match existing API shapes.
+ */
 class ApiResponse {
-    constructor(statusCode, data, message = "Success") {
-        this.statusCode = statusCode
-        this.data = data
-        this.message = message
-        this.success = statusCode < 400
+    constructor(statusCode, data = {}) {
+        this.statusCode = statusCode;
+        this.data = data;
+    }
+
+    toJSON() {
+        return {
+            success: this.statusCode < 400,
+            ...this.data,
+        };
     }
 }
 
-export { ApiResponse }
+/**
+ * @param {import('express').Response} res
+ * @param {ApiResponse} apiResponse
+ */
+export function sendResponse(res, apiResponse) {
+    res.status(apiResponse.statusCode).json(apiResponse.toJSON());
+}
+
+export { ApiResponse };

@@ -6,15 +6,16 @@ import {
   rejectChatRequest,
   sendChatRequest,
 } from "../controllers/chatRequest.Controller.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = express.Router();
 
 router.use(authMiddleware);
 
-router.post("/send/:userId", sendChatRequest);
-router.get("/", getMyChatRequests);
-router.post("/accept/:id", acceptChatRequest);
-router.post("/reject/:id", rejectChatRequest);
+router.post("/send/:userId", asyncHandler(sendChatRequest));
+router.get("/", asyncHandler(getMyChatRequests));
+router.post("/accept/:id", asyncHandler(acceptChatRequest));
+router.post("/reject/:id", asyncHandler(rejectChatRequest));
 
 export default router;
 

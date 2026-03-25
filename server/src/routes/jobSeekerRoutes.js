@@ -23,6 +23,7 @@ import {
 import authMiddleware from "../middlewares/authMiddleware.js";
 import roleMiddleware from "../middlewares/roleMiddleware.js";
 import upload from "../middlewares/uploadMiddleware.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = express.Router();
 
@@ -31,10 +32,10 @@ const router = express.Router();
 ========================================= */
 
 // Get all job seekers
-router.get("/", getAllJobSeekers);
+router.get("/", asyncHandler(getAllJobSeekers));
 
 // Get job seeker by ID
-router.get("/:id", getJobSeekerById);
+router.get("/:id", asyncHandler(getJobSeekerById));
 
 
 /* =========================================
@@ -46,7 +47,7 @@ router.get(
     "/me/profile",
     authMiddleware,
     roleMiddleware("jobseeker"),
-    getMyJobSeekerProfile
+    asyncHandler(getMyJobSeekerProfile)
 );
 
 // Dashboard summary
@@ -54,26 +55,26 @@ router.get(
     "/me/dashboard",
     authMiddleware,
     roleMiddleware("jobseeker"),
-    getJobSeekerDashboard
+    asyncHandler(getJobSeekerDashboard)
 );
 
 router.get(
     "/me/saved-jobs",
     authMiddleware,
     roleMiddleware("jobseeker"),
-    getMySavedJobs
+    asyncHandler(getMySavedJobs)
 );
 router.post(
     "/me/saved-jobs",
     authMiddleware,
     roleMiddleware("jobseeker"),
-    saveJobForSeeker
+    asyncHandler(saveJobForSeeker)
 );
 router.delete(
     "/me/saved-jobs/:jobId",
     authMiddleware,
     roleMiddleware("jobseeker"),
-    unsaveJobForSeeker
+    asyncHandler(unsaveJobForSeeker)
 );
 
 // 🔥 UPDATE PROFILE (with avatar support)
@@ -82,7 +83,7 @@ router.put(
     authMiddleware,
     roleMiddleware("jobseeker"),
     upload.single("avatar"),   // ✅ IMPORTANT
-    updateJobSeekerProfile
+    asyncHandler(updateJobSeekerProfile)
 );
 
 
@@ -92,7 +93,7 @@ router.post(
     authMiddleware,
     roleMiddleware("jobseeker"),
     upload.single("resume"),
-    uploadResume
+    asyncHandler(uploadResume)
 );
 
 
@@ -102,23 +103,23 @@ router.post(
     authMiddleware,
     roleMiddleware("jobseeker"),
     upload.single("avatar"),
-    uploadAvatar
+    asyncHandler(uploadAvatar)
 );
 
 /* =========================================
    CAREER: EXPERIENCE
 ========================================= */
-router.get("/me/experience", authMiddleware, roleMiddleware("jobseeker"), getExperience);
-router.post("/me/experience", authMiddleware, roleMiddleware("jobseeker"), addExperience);
-router.put("/me/experience/:id", authMiddleware, roleMiddleware("jobseeker"), updateExperience);
-router.delete("/me/experience/:id", authMiddleware, roleMiddleware("jobseeker"), deleteExperience);
+router.get("/me/experience", authMiddleware, roleMiddleware("jobseeker"), asyncHandler(getExperience));
+router.post("/me/experience", authMiddleware, roleMiddleware("jobseeker"), asyncHandler(addExperience));
+router.put("/me/experience/:id", authMiddleware, roleMiddleware("jobseeker"), asyncHandler(updateExperience));
+router.delete("/me/experience/:id", authMiddleware, roleMiddleware("jobseeker"), asyncHandler(deleteExperience));
 
 /* =========================================
    CAREER: EDUCATION
 ========================================= */
-router.get("/me/education", authMiddleware, roleMiddleware("jobseeker"), getEducation);
-router.post("/me/education", authMiddleware, roleMiddleware("jobseeker"), addEducation);
-router.put("/me/education/:id", authMiddleware, roleMiddleware("jobseeker"), updateEducation);
-router.delete("/me/education/:id", authMiddleware, roleMiddleware("jobseeker"), deleteEducation);
+router.get("/me/education", authMiddleware, roleMiddleware("jobseeker"), asyncHandler(getEducation));
+router.post("/me/education", authMiddleware, roleMiddleware("jobseeker"), asyncHandler(addEducation));
+router.put("/me/education/:id", authMiddleware, roleMiddleware("jobseeker"), asyncHandler(updateEducation));
+router.delete("/me/education/:id", authMiddleware, roleMiddleware("jobseeker"), asyncHandler(deleteEducation));
 
 export default router;

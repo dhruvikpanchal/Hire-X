@@ -8,8 +8,8 @@ JOB SEEKERS (5)
 1) Job Seeker
 - fullName: Aarav Sharma
 - username: aarav_sharma
-- email: aarav.sharma01@testmail.com
-- password: Test@123
+- email: js1@test.com
+- password: 123456
 - role: jobseeker
 - phone: +91-9876500001
 - location: Delhi
@@ -21,8 +21,8 @@ JOB SEEKERS (5)
 2) Job Seeker
 - fullName: Priya Nair
 - username: priya_nair
-- email: priya.nair02@testmail.com
-- password: Test@123
+- email: js2@test.com
+- password: 123456
 - role: jobseeker
 - phone: +91-9876500002
 - location: Bengaluru
@@ -34,8 +34,8 @@ JOB SEEKERS (5)
 3) Job Seeker
 - fullName: Rohan Mehta
 - username: rohan_mehta
-- email: rohan.mehta03@testmail.com
-- password: Test@123
+- email: js3@test.com
+- password: 123456
 - role: jobseeker
 - phone: +91-9876500003
 - location: Pune
@@ -47,8 +47,8 @@ JOB SEEKERS (5)
 4) Job Seeker
 - fullName: Sneha Iyer
 - username: sneha_iyer
-- email: sneha.iyer04@testmail.com
-- password: Test@123
+- email: js4@test.com
+- password: 123456
 - role: jobseeker
 - phone: +91-9876500004
 - location: Hyderabad
@@ -60,8 +60,8 @@ JOB SEEKERS (5)
 5) Job Seeker
 - fullName: Imran Khan
 - username: imran_khan
-- email: imran.khan05@testmail.com
-- password: Test@123
+- email: js5@test.com
+- password: 123456
 - role: jobseeker
 - phone: +91-9876500005
 - location: Mumbai
@@ -77,8 +77,8 @@ RECRUITERS WITH POST JOB DATA (5)
 1) Recruiter
 - fullName: Neha Verma
 - username: neha_verma_hr
-- email: neha.verma01@testmail.com
-- password: Test@123
+- email: rec1@test.com
+- password: 123456
 - role: recruiter
 - company: TechNova Solutions
 - companyLocation: Noida
@@ -96,8 +96,8 @@ Post Job
 2) Recruiter
 - fullName: Karan Malhotra
 - username: karan_malhotra_hr
-- email: karan.malhotra02@testmail.com
-- password: Test@123
+- email: rec2@test.com
+- password: 123456
 - role: recruiter
 - company: ByteBridge Pvt Ltd
 - companyLocation: Bengaluru
@@ -115,8 +115,8 @@ Post Job
 3) Recruiter
 - fullName: Aditi Rao
 - username: aditi_rao_hr
-- email: aditi.rao03@testmail.com
-- password: Test@123
+- email: rec3@test.com
+- password: 123456
 - role: recruiter
 - company: CloudPulse Systems
 - companyLocation: Chennai
@@ -134,8 +134,8 @@ Post Job
 4) Recruiter
 - fullName: Rajesh Gupta
 - username: rajesh_gupta_hr
-- email: rajesh.gupta04@testmail.com
-- password: Test@123
+- email: rec4@test.com
+- password: 123456
 - role: recruiter
 - company: DataMint Analytics
 - companyLocation: Pune
@@ -153,8 +153,8 @@ Post Job
 5) Recruiter
 - fullName: Meera Joshi
 - username: meera_joshi_hr
-- email: meera.joshi05@testmail.com
-- password: Test@123
+- email: rec5@test.com
+- password: 123456
 - role: recruiter
 - company: DesignNest Studio
 - companyLocation: Mumbai

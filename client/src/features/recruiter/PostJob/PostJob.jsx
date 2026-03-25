@@ -435,9 +435,7 @@ export default function PostJob() {
             >
               Post Another Job
             </button>
-            <button className="postjob-btn postjob-btn-primary">
-              View Job Listing
-            </button>
+
           </div>
         </div>
       </div>
