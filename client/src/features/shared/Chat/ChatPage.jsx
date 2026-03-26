@@ -435,6 +435,8 @@ export default function ChatPage({ role }) {
                     const name = c.otherUser?.fullName || c.otherUser?.email || "User";
                     const preview = c.lastMessage?.content || "No messages yet";
                     const t = c.lastMessage?.createdAt || c.updatedAt;
+                    const unread = Number(c.unreadCount) || 0;
+
                     return (
                       <button
                         key={c._id}
@@ -442,11 +444,22 @@ export default function ChatPage({ role }) {
                         onClick={() => setActiveId(c._id)}
                       >
                         <UserAvatar user={c.otherUser} />
+
                         <div className="chat__convoMain">
                           <div className="chat__convoTop">
                             <span className="chat__convoName">{name}</span>
-                            <span className="chat__convoTime">{formatDayLabel(t)}</span>
+
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                              {unread > 0 && (
+                                <span className="chat__unreadBadge">
+                                  {unread}
+                                </span>
+                              )}
+                              <span className="chat__convoTime">{formatDayLabel(t)}</span>
+                            </div>
+
                           </div>
+
                           <div className="chat__convoPreview">{preview}</div>
                         </div>
                       </button>

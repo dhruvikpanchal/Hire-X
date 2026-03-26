@@ -53,30 +53,47 @@ export const getConversations = async (req, res) => {
         .sort({ updatedAt: -1 })
         .lean();
 
-    const conversations = convos.map((c) => {
-        const other = (c.participants || []).find((p) => String(p._id) !== String(userId));
-        return {
-            _id: c._id,
-            otherUser: other
-                ? {
+        const conversations = await Promise.all(
+            convos.map(async (c) => {
+              const other = (c.participants || []).find(
+                (p) => String(p._id) !== String(userId)
+              );
+          
+              const unreadCount = await Message.countDocuments({
+                conversation: c._id,
+                sender: { $ne: userId },
+                isRead: false,
+                deletedFor: { $ne: userId },
+              });
+          
+              return {
+                _id: c._id,
+          
+                otherUser: other
+                  ? {
                       _id: other._id,
                       fullName: other.fullName,
                       email: other.email,
                       avatar: other.avatar,
                       role: other.role,
-                  }
-                : null,
-            lastMessage: c.lastMessage
-                ? {
+                    }
+                  : null,
+          
+                lastMessage: c.lastMessage
+                  ? {
                       content: c.lastMessage.content,
                       senderId: c.lastMessage.sender?._id || c.lastMessage.sender,
                       createdAt: c.lastMessage.createdAt,
-                  }
-                : null,
-            updatedAt: c.updatedAt,
-            job: c.job || null,
-        };
-    });
+                    }
+                  : null,
+          
+                updatedAt: c.updatedAt,
+                job: c.job || null,
+          
+                unreadCount,
+              };
+            })
+          );
 
     return sendResponse(res, new ApiResponse(200, { conversations }));
 };
@@ -101,10 +118,22 @@ export const getMessagesByConversation = async (req, res) => {
         ? await getChatRequestState(userId, otherUserId)
         : { status: "accepted", canChat: true, requestId: null };
 
-    const messages = await Message.find({
-        conversation: conversationId,
-        deletedFor: { $ne: userId },
-    })
+// mark messages as read when conversation is opened
+await Message.updateMany(
+    {
+      conversation: conversationId,
+      sender: { $ne: userId },
+      isRead: false,
+    },
+    {
+      $set: { isRead: true },
+    }
+  );
+  
+  const messages = await Message.find({
+    conversation: conversationId,
+    deletedFor: { $ne: userId },
+  })
         .populate("sender", "fullName email avatar role")
         .sort({ createdAt: 1 })
         .lean();
@@ -193,6 +222,7 @@ export const sendMessage = async (req, res) => {
         conversation: convo._id,
         sender: senderId,
         content: trimmed,
+        isRead: false,
     });
 
     convo.lastMessage = message._id;

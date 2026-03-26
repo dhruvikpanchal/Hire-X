@@ -1,5 +1,6 @@
 import authService from "../../../services/authService.js";
 import toast from "react-hot-toast";
+import { getConversations } from "../../../services/messageService.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ChevronDown, Menu, X } from "lucide-react";
@@ -36,6 +37,17 @@ const RecruiterNavbar = () => {
     queryKey: ["recruiterProfile"],
     queryFn: getMyRecruiterProfile,
   });
+
+  const { data: messageData } = useQuery({
+    queryKey: ["navbarConversations"],
+    queryFn: getConversations,
+    refetchInterval: 8000
+  });
+
+  const unreadUsersCount = useMemo(() => {
+    const list = messageData?.conversations || [];
+    return list.filter((c) => Number(c.unreadCount) > 0).length || 0;
+  }, [messageData]); 
 
   const user = data?.recruiter?.user || null;
   const displayName = useMemo(() => {
@@ -89,11 +101,20 @@ const RecruiterNavbar = () => {
           <ul className="nav-links">
             <li><Link to="/recruiter/dashboard"><div className={`nav-link ${location.pathname === "/recruiter/dashboard" ? "active" : ""}`}>Dashboard</div></Link></li>
             <li><Link to="/recruiter/feed"><div className={`nav-link ${location.pathname === "/recruiter/feed" ? "active" : ""}`}>Feed</div></Link></li>
-            <li><Link to="/recruiter/findCandidates"><div className={`nav-link ${location.pathname === "/recruiter/findCandidates" ? "active" : ""}`}>Find Candidates</div></Link></li>
+            <li><Link to="/recruiter/findCandidates"><div className={`nav-link ${location.pathname === "/recruiter/findCandidates" ? "active" : ""}`}>Candidates</div></Link></li>
             <li><Link to="/recruiter/Post"><div className={`nav-link ${location.pathname === "/recruiter/Post" ? "active" : ""}`}>Post</div></Link></li>
             <li><Link to="/recruiter/my-jobs"><div className={`nav-link ${location.pathname === "/recruiter/my-jobs" ? "active" : ""}`}>My Jobs</div></Link></li>
             <li><Link to="/recruiter/applications"><div className={`nav-link ${location.pathname === "/recruiter/applications" ? "active" : ""}`}>Applications</div></Link></li>
-            <li><Link to="/recruiter/messages"><div className={`nav-link ${location.pathname === "/recruiter/messages" ? "active" : ""}`}>Messages</div></Link></li>
+            <li><Link to="/recruiter/messages"><div className={`nav-link ${location.pathname === "/recruiter/messages" ? "active" : ""}`}>
+            Messages
+            
+            {unreadUsersCount > 0 && (
+              <span className="navbar-msg-badge">
+                {unreadUsersCount}
+              </span>
+             )}
+
+            </div></Link></li>
           </ul>
         </div>
 

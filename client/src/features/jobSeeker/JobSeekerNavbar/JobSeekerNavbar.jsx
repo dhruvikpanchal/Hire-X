@@ -1,5 +1,6 @@
 import authService from "../../../services/authService.js";
 import toast from "react-hot-toast";
+import { getConversations } from "../../../services/messageService.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X, ChevronDown } from "lucide-react";
@@ -36,6 +37,17 @@ const JobSeekerNavbar = () => {
     queryKey: ["jobSeekerProfile"],
     queryFn: getMyJobSeekerProfile,
   });
+
+  const { data: messageData } = useQuery({
+    queryKey: ["navbarConversations"],
+    queryFn: getConversations,
+    refetchInterval: 8000
+  });
+
+  const unreadUsersCount = useMemo(() => {
+    const list = messageData?.conversations || [];
+    return list.filter((c) => Number(c.unreadCount) > 0).length || 0;
+  }, [messageData]);
 
   const profile = data?.profile || null;
   const user = profile?.user || null;
@@ -95,7 +107,18 @@ const JobSeekerNavbar = () => {
             <li><Link to="/jobSeeker/companies"><div className={`nav-link ${location.pathname === "/jobSeeker/companies" ? "active" : ""}`}>Companies</div></Link></li>
             <li><Link to="/jobSeeker/candidates"><div className={`nav-link ${location.pathname === "/jobSeeker/candidates" ? "active" : ""}`}>Find friends</div></Link></li>
             <li><Link to="/jobSeeker/myApplications"><div className={`nav-link ${location.pathname === "/jobSeeker/myApplications" ? "active" : ""}`}>Applications</div></Link></li>
-            <li><Link to="/jobSeeker/messages"><div className={`nav-link ${location.pathname === "/jobSeeker/messages" ? "active" : ""}`}>Messages</div></Link></li>
+            <li><Link to="/jobSeeker/messages"><div className={`nav-link ${location.pathname === "/jobSeeker/messages" ? "active" : ""}`}>
+            Messages
+
+             {unreadUsersCount > 0 && (
+              <span className="navbar-msg-badge">
+                {unreadUsersCount}
+              </span>
+             )}
+
+            </div>
+            </Link>
+            </li>
           </ul>
         </div>
 
